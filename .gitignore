@@ -1,7 +1,8 @@
 # intellij configs
 .idea/
 
-
+# Unnecessary input videos
+video_input/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

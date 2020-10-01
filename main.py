@@ -5,8 +5,26 @@ import sys
 
 
 def main():
+    background_subtract()
 
-
+def background_subtract():
+    back_sub = cv.createBackgroundSubtractorMOG2()
+    cap = cv.VideoCapture(file_and_path())
+    if not cap.isOpened():
+        print('Error opening video file')
+        sys.exit(-1)
+    while True:
+        (exists_frame, frame) = cap.read()
+        if not exists_frame:
+            break
+        fg_mask = back_sub.apply(frame)
+        cv.rectangle(frame, (10, 2), (100, 20), (255, 255, 255), -1)
+        cv.putText(frame, str(cap.get(cv.CAP_PROP_POS_FRAMES)), (15, 15),
+                   cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
+        cv.imshow('Frame', frame)
+        cv.imshow('FG Mask', fg_mask)
+        if cv.waitKey(25) & 0xFF == ord('q'):
+            break
 
 # for now just selects first frame NOTE: BADLY WRITTEN
 def select_first_frame():
@@ -19,7 +37,7 @@ def select_first_frame():
         sys.exit(-1)
 
     (exists_frame, frame) = cap.read()
-    while 1 == 1:
+    while True:
         cv.imshow('Frame', frame)
         if cv.waitKey(25) & 0xFF == ord('q'):
             break
@@ -66,7 +84,7 @@ def crop_to_tube():
 # Prompts user to input file name
 # Returns path and name in directory
 def file_and_path():  # Will likely use argparse here
-    input_file_name = "Export_20171211_015532_PM.avi"
+    input_file_name = "Sequence 01.avi"
     path = "./video_input/"
     return path + input_file_name
 
