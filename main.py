@@ -5,22 +5,26 @@ import sys
 
 
 def main():
-    background_subtract()
+    bg_sub_array = background_subtract()
+    to_vertical_bands(bg_sub_array)
 
 
-# Takes individual frames
-# Returns an array whose index represents frame number (starting from 0)
-# and contains the picture in its array form.
-# def frame_to_array(input_frame, total_frame_count, frame_number):
-#     frame_array = np.zeros(total_frame_count)
-#     frame_array[frame_number - 1] = input_frame
-#     print(frame_array[0])
-#     print(frame_array[total_frame_count - 1])
+# Returns the average brightness of a vertical slice of pixels
+# Index represents frame starting from 0
+# Within the frame element [y,x] is the pixel location
+# ie. second frame y=240 x=600: [1][240, 600] <-- returns intensity
+def to_vertical_bands(input_array):
+    # a = np.zeros(len(input_array))
+    input_array = input_array.mean(axis=1)
+    print(input_array.shape)
+    np.savetxt('./data_output/foo.csv', input_array, delimiter=',')
+
 
 # Simple background subtraction
 # Saves video to output file
+# Returns a 3d numpy matrix containing the video information
 # TODO: allow user to set --algo to switch between MOG2 and KNN
-# TODO: allow user to select output location, then MUST CONFIGURE frame processing() input
+# TODO: Make saving video to output file optional
 def background_subtract():
     back_sub = cv.createBackgroundSubtractorMOG2(varThreshold=30, detectShadows=False)
     cap = cv.VideoCapture(file_and_path())
@@ -36,8 +40,8 @@ def background_subtract():
     print('Press Q to quit')
     # Define the codec, create VideoWriter object.
     output = cv.VideoWriter('./data_output/Background_Sub.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
-                            10, (frame_width, frame_height), 0)
-    video_array = [] # array of frames, index = frame # starting from 0
+                            3, (frame_width, frame_height), 0)
+    video_array = []  # array of frames, index = frame # starting from 0
     while True:
         (exists_frame, frame) = cap.read()
 
@@ -59,7 +63,9 @@ def background_subtract():
     cap.release()
     output.release()
     cv.destroyAllWindows()
-    sys.exit(0)
+
+    video_array = np.asarray(video_array)
+    return video_array
 
 
 # for now just selects first frame NOTE: BADLY WRITTEN
