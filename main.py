@@ -5,10 +5,28 @@ import sys
 
 
 def main():
-    crop_to_tube()
 
 
-# Takes
+
+# for now just selects first frame NOTE: BADLY WRITTEN
+def select_first_frame():
+    video_path = file_and_path()
+    cap = cv.VideoCapture(video_path)
+
+    # Checks if file opened
+    if not cap.isOpened():
+        print("Error opening video file")
+        sys.exit(-1)
+
+    (exists_frame, frame) = cap.read()
+    while 1 == 1:
+        cv.imshow('Frame', frame)
+        if cv.waitKey(25) & 0xFF == ord('q'):
+            break
+
+    print("Success...?")
+
+
 def crop_to_tube():
     video_path = file_and_path()
     cap = cv.VideoCapture(video_path)
@@ -40,6 +58,7 @@ def crop_to_tube():
 
     # Define codec
 #    out = cv.VideoWriter('')
+
 
 
 
