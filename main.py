@@ -8,17 +8,14 @@ def main():
     background_subtract()
 
 
-# def frame_processing():
-#     cap = cv.VideoCapture('./data_output/Background_Sub.avi')
-#     if not cap.isOpened():
-#         print('Error Opening Background_Sub video')
-#         sys.exit(-1)
-#     while True:
-#         (exists_frame, frame)  = cap.read()
-#         if not exists frame:
-#             break
-#         cv.imread()
-
+# Takes individual frames
+# Returns an array whose index represents frame number (starting from 0)
+# and contains the picture in its array form.
+# def frame_to_array(input_frame, total_frame_count, frame_number):
+#     frame_array = np.zeros(total_frame_count)
+#     frame_array[frame_number - 1] = input_frame
+#     print(frame_array[0])
+#     print(frame_array[total_frame_count - 1])
 
 # Simple background subtraction
 # Saves video to output file
@@ -33,11 +30,14 @@ def background_subtract():
     # Obtains default resolution of frame & converts from float to int
     frame_width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
-    print(frame_height)
-    print(frame_width)
+    total_frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
+    print(f'Frame resolution: Width={frame_width} Height={frame_height}')
+    print(f'Total number of frames: {total_frame_count}')
+    print('Press Q to quit')
     # Define the codec, create VideoWriter object.
     output = cv.VideoWriter('./data_output/Background_Sub.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
                             10, (frame_width, frame_height), 0)
+    video_array = [] # array of frames, index = frame # starting from 0
     while True:
         (exists_frame, frame) = cap.read()
 
@@ -45,10 +45,12 @@ def background_subtract():
             break
         fg_mask = back_sub.apply(frame)
         # Puts the frame count on the original video
+        # frame_number starts from 1
         cv.rectangle(frame, (10, 2), (100, 20), (255, 255, 255), -1)
         cv.putText(frame, str(cap.get(cv.CAP_PROP_POS_FRAMES)), (15, 15),
                    cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
+        video_array.append(fg_mask)
         output.write(fg_mask)
         cv.imshow('Frame', frame)
         cv.imshow('FG Mask', fg_mask)
@@ -57,6 +59,7 @@ def background_subtract():
     cap.release()
     output.release()
     cv.destroyAllWindows()
+    sys.exit(0)
 
 
 # for now just selects first frame NOTE: BADLY WRITTEN
