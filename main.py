@@ -5,8 +5,16 @@ import sys
 
 
 def main():
+    # corner_coords = find_tube_coords()
     bg_sub_array = background_subtract()
     to_vertical_bands(bg_sub_array)
+
+# Finds edges of feeding tube, locates the corners,
+# Returns an object with the coordinates of the corners
+# and the side the opening is on
+# TODO: make this into an object, so that the inputted video
+def find_tube_coords():
+    return
 
 
 # Returns the average brightness of a vertical slice of pixels
@@ -16,7 +24,7 @@ def main():
 def to_vertical_bands(input_array):
     # a = np.zeros(len(input_array))
     input_array = input_array.mean(axis=1)
-    print(input_array.shape)
+    print(f'Frame count, Horizontal Resolution: {input_array.shape}')
     np.savetxt('./data_output/foo.csv', input_array, delimiter=',')
 
 
