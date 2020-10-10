@@ -5,9 +5,52 @@ import sys
 
 
 def main():
-    # crop_to_tube
-    bg_sub_array = background_subtract()
+    input_path = file_and_path()
+    first_frame = grab_first_frame(input_path)
+    select_corners(first_frame)
+
+    # bg_sub_array = background_subtract()
     # to_vertical_bands(bg_sub_array)
+
+
+# Returns an image of the first frame of the video inputted
+def grab_first_frame(input_path):
+    cap = cv.VideoCapture(input_path)
+    if not cap.isOpened():
+        print('Error opening video file')
+        sys.exit(-1)
+    (exists_frame, frame) = cap.read()
+    cap.release()
+    return frame
+
+
+# Displays image, prompts user to click 4 corners of image.
+def select_corners(img):
+    global CORNER_COORDS  # double check that I actually need a global variable here
+    CORNER_COORDS = []
+
+    win_name = "Click the 4 Corners (Press 'Q' to Cancel)"
+    cv.namedWindow(win_name)
+    cv.setMouseCallback(win_name, click_and_crop)
+
+    # While less than 4 corners are clicked
+    while len(CORNER_COORDS) < 4:
+        cv.imshow(win_name, img)
+        key = cv.waitKey(1) & 0xFF
+        if key == 27 or key == ord("q"):  # If the user presses Q or ESC
+            cv.destroyAllWindows()
+            sys.exit(-1)
+    cv.destroyAllWindows()
+    return CORNER_COORDS  # Don't have to but makes it more clear imo
+
+
+# TODO: If you want, make the image global so that you can put in
+#   circles in as the user clicks
+def click_and_crop(event, x, y, flags, param):
+    if (event == cv.EVENT_LBUTTONDOWN) & (len(CORNER_COORDS) < 4):
+        click_coords = (x, y)
+        CORNER_COORDS.append(click_coords)
+        print(f'Clicked corner {len(CORNER_COORDS)}/4')
 
 
 # Returns the average brightness of a vertical slice of pixels
@@ -26,6 +69,10 @@ def to_vertical_bands(input_array):
 # Returns a 3d numpy matrix containing the video information
 # TODO: allow user to set --algo to switch between MOG2 and KNN
 # TODO: Make saving video to output file optional
+# TODO: When next testing background sub method, remember that you changed your mind
+#   so file_and_path should be inputted as a parameter instead of directly into file
+# TODO: Remember that bg_sub should no longer display frame, separate out into diff
+#   methods like watch_video, save_video and such
 def background_subtract():
     back_sub = cv.createBackgroundSubtractorMOG2(varThreshold=30, detectShadows=False)
     cap = cv.VideoCapture(file_and_path())

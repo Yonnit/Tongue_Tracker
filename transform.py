@@ -31,7 +31,8 @@ def order_points(pts):
     return rect
 
 
-def four_point_transform(image, pts):
+# Receives coordinate points, returns data needed to apply warp
+def get_four_point_transform(pts):
     # obtain a consistent order of the points and unpack them
     # individually
     rect = order_points(pts)
@@ -60,6 +61,15 @@ def four_point_transform(image, pts):
         [0, maxHeight - 1]], dtype="float32")
     # compute the perspective transform matrix and then apply it
     M = cv2.getPerspectiveTransform(rect, dst)
+    transform_data = (M, maxWidth, maxHeight)
+    return transform_data
+
+
+# Apply the four point transform.
+# Takes the getPerspectiveTransform object as input
+def apply_four_point_transform(image, transform_data):
+    (M, maxWidth, maxHeight) = transform_data
     warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
     # return the warped image
     return warped
+
