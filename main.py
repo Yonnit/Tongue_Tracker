@@ -5,54 +5,9 @@ import sys
 
 
 def main():
-    corner_coords = find_tube_coords()
-    # bg_sub_array = background_subtract()
+    # crop_to_tube
+    bg_sub_array = background_subtract()
     # to_vertical_bands(bg_sub_array)
-
-# Finds edges of feeding tube, locates the corners,
-# Returns an object with the coordinates of the corners
-# and the side the opening is on
-# TODO: make this into an object, so that the inputted video
-def find_tube_coords():
-    # Pulls first frame
-    video_path = file_and_path()
-    cap = cv.VideoCapture(video_path)
-
-    # Checks if file opened
-    if not cap.isOpened():
-        print("Error opening video file")
-        sys.exit(-1)
-
-    # These following lines of code are "Otsu's method" for automatic thresholding,
-    # TODO: Implement automatic thresholding
-    # (high_thresh, thresh_im) = cv.threshold(im, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
-    # lowThresh = 0.5 * high_thresh
-
-    (exists_frame, frame) = cap.read()
-    gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
-    edges = cv.Canny(gray, 50, 150, apertureSize=3)
-
-    lines = cv.HoughLines(edges, 1, np.pi / 180, 200)
-    for line in lines:
-        rho, theta = line[0]
-        a = np.cos(theta)
-        b = np.sin(theta)
-        x0 = a * rho
-        y0 = b * rho
-        x1 = int(x0 + 1000 * (-b))
-        y1 = int(y0 + 1000 * (a))
-        x2 = int(x0 - 1000 * (-b))
-        y2 = int(y0 - 1000 * (a))
-        cv.line(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-
-    # Displays frame until user cancels with Q
-    print('Press Q to quit')
-    while True:
-        cv.imshow('gray', gray)
-        cv.imshow('edges', edges)
-        cv.imshow('lines', frame)
-        if cv.waitKey(25) & 0xFF == ord('q'):
-            break
 
 
 # Returns the average brightness of a vertical slice of pixels
@@ -114,7 +69,7 @@ def background_subtract():
     return video_array
 
 
-def crop_to_tube():
+def view_video():
     video_path = file_and_path()
     cap = cv.VideoCapture(video_path)
 
@@ -142,11 +97,6 @@ def crop_to_tube():
     cv.destroyAllWindows()
     print("Success...?")
 
-    # Define codec
-
-
-#    out = cv.VideoWriter('')
-
 
 # Prompts user to input file name
 # Returns path and name in directory
@@ -160,3 +110,12 @@ def file_and_path():  # Will likely use argparse here
 # makes main() a main function similar to Java, C, C++
 if __name__ == '__main__':
     main()
+
+# Maybe stuff:
+
+# # construct the argument parse and parse the arguments
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-i", "--image", help = "path to the image file")
+# ap.add_argument("-c", "--coords",
+# 	help = "comma seperated list of source points")
+# args = vars(ap.parse_args())
