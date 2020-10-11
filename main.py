@@ -3,6 +3,8 @@ import cv2 as cv
 import argparse
 import sys
 
+from transform import get_four_point_transform, apply_four_point_transform
+
 
 def main():
     input_path = file_and_path()
@@ -41,7 +43,21 @@ def select_corners(img):
             cv.destroyAllWindows()
             sys.exit(-1)
     cv.destroyAllWindows()
-    return CORNER_COORDS  # Don't have to but makes it more clear imo
+    print(CORNER_COORDS)
+    corner_array = np.array(CORNER_COORDS, dtype="float32")
+    transform_data = get_four_point_transform(corner_array)
+    warped = apply_four_point_transform(img, transform_data)
+
+    print('If unsatisfied with the crop, press "Q" to Cancel')
+    while True:
+        cv.imshow('Cropped image. Press "Y" to Continue', warped)
+        key = cv.waitKey(1) & 0xFF
+        if key == 27 or key == ord("q"):  # If the user presses Q or ESC
+            cv.destroyAllWindows()
+            sys.exit(-1)
+        elif key == ord("y"):
+            break
+    return transform_data
 
 
 # TODO: If you want, make the image global so that you can put in
