@@ -11,7 +11,7 @@ def main():
     first_frame = grab_first_frame(input_path)
     transform_data = select_corners(first_frame)
     bg_sub_array = background_subtract(transform_data)
-    # to_vertical_bands(bg_sub_array)
+    to_vertical_bands(bg_sub_array)
 
 
 # Returns an image of the first frame of the video inputted
@@ -24,7 +24,7 @@ def grab_first_frame(input_path):
     cap.release()
     return frame
 
-
+# Sometimes the crop method doesn't work??? Test it out a bunch of different ways
 # TODO: somehow figure out how to deal with different feeding tube orientations
 #   somewhere the user is going to have to input which way the tube is facing
 #   can be dealt with during the to vertical bars portion or manually rotated here
@@ -58,6 +58,7 @@ def select_corners(img):
             sys.exit(-1)
         elif key == ord("y"):
             break
+    cv.destroyAllWindows()
     return transform_data
 
 
@@ -90,43 +91,44 @@ def to_vertical_bands(input_array):
 #   so file_and_path should be inputted as a parameter instead of directly into file
 # TODO: Remember that bg_sub should no longer display frame, separate out into diff
 #   methods like watch_video, save_video and such
-def background_subtract():
+def background_subtract(transform_data):
     back_sub = cv.createBackgroundSubtractorMOG2(varThreshold=30, detectShadows=False)
     cap = cv.VideoCapture(file_and_path())
     if not cap.isOpened():
         print('Error opening video file')
         sys.exit(-1)
     # Obtains default resolution of frame & converts from float to int
-    frame_width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
+    # frame_width = int(cap.get(cv.CAP_PROP_FRAME_WIDTH))
+    # frame_height = int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))
     total_frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
-    print(f'Frame resolution: Width={frame_width} Height={frame_height}')
+    # print(f'Frame resolution: Width={frame_width} Height={frame_height}')
     print(f'Total number of frames: {total_frame_count}')
     print('Press Q to quit')
-    # Define the codec, create VideoWriter object.
-    output = cv.VideoWriter('./data_output/Background_Sub.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
-                            3, (frame_width, frame_height), 0)
+    # # Define the codec, create VideoWriter object.
+    # output = cv.VideoWriter('./data_output/Background_Sub.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+    #                         3, (frame_width, frame_height), 0)
     video_array = []  # array of frames, index = frame # starting from 0
     while True:
         (exists_frame, frame) = cap.read()
 
         if not exists_frame:
             break
-        fg_mask = back_sub.apply(frame)
+        cropped_frame = apply_four_point_transform(frame, transform_data)
+        fg_mask = back_sub.apply(cropped_frame)
         # Puts the frame count on the original video
         # frame_number starts from 1
-        cv.rectangle(frame, (10, 2), (100, 20), (255, 255, 255), -1)
-        cv.putText(frame, str(cap.get(cv.CAP_PROP_POS_FRAMES)), (15, 15),
-                   cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
+        # cv.rectangle(frame, (10, 2), (100, 20), (255, 255, 255), -1)
+        # cv.putText(frame, str(cap.get(cv.CAP_PROP_POS_FRAMES)), (15, 15),
+        #            cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0))
 
         video_array.append(fg_mask)
-        output.write(fg_mask)
-        cv.imshow('Frame', frame)
-        cv.imshow('FG Mask', fg_mask)
+        # output.write(fg_mask)
+        # cv.imshow('Frame', frame)
+        # cv.imshow('FG Mask', fg_mask)
         if cv.waitKey(25) & 0xFF == ord('q'):
             break
     cap.release()
-    output.release()
+    # output.release()
     cv.destroyAllWindows()
 
     video_array = np.asarray(video_array)
