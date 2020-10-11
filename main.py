@@ -9,9 +9,8 @@ from transform import get_four_point_transform, apply_four_point_transform
 def main():
     input_path = file_and_path()
     first_frame = grab_first_frame(input_path)
-    select_corners(first_frame)
-
-    # bg_sub_array = background_subtract()
+    transform_data = select_corners(first_frame)
+    bg_sub_array = background_subtract(transform_data)
     # to_vertical_bands(bg_sub_array)
 
 
@@ -26,6 +25,9 @@ def grab_first_frame(input_path):
     return frame
 
 
+# TODO: somehow figure out how to deal with different feeding tube orientations
+#   somewhere the user is going to have to input which way the tube is facing
+#   can be dealt with during the to vertical bars portion or manually rotated here
 # Displays image, prompts user to click 4 corners of image.
 def select_corners(img):
     global CORNER_COORDS  # double check that I actually need a global variable here
@@ -43,14 +45,13 @@ def select_corners(img):
             cv.destroyAllWindows()
             sys.exit(-1)
     cv.destroyAllWindows()
-    print(CORNER_COORDS)
     corner_array = np.array(CORNER_COORDS, dtype="float32")
     transform_data = get_four_point_transform(corner_array)
     warped = apply_four_point_transform(img, transform_data)
 
-    print('If unsatisfied with the crop, press "Q" to Cancel')
+    print("If unsatisfied with the crop, press 'Q' to Cancel")
     while True:
-        cv.imshow('Cropped image. Press "Y" to Continue', warped)
+        cv.imshow("Cropped image. Press 'Y' to Continue", warped)
         key = cv.waitKey(1) & 0xFF
         if key == 27 or key == ord("q"):  # If the user presses Q or ESC
             cv.destroyAllWindows()
