@@ -10,8 +10,44 @@ def main():
     input_path = file_and_path()
     first_frame = grab_first_frame(input_path)
     transform_data = select_corners(first_frame)
+    print("Start background subtraction")
     bg_sub_array = background_subtract(transform_data)
-    to_vertical_bands(bg_sub_array)
+    print("Done with background subtraction")
+    avg_vertical = to_vertical_bands(bg_sub_array)
+    a = find_tongue_max(avg_vertical)
+    test(a, bg_sub_array)
+
+
+def test(a, bg_sub_array):
+    # avg_vertical = np.genfromtxt('./data_output/foo.csv', delimiter=',')
+    # a = np.apply_along_axis(first_above_value, 1, avg_vertical)
+    # np.savetxt('./data_output/test.csv', a, delimiter=',')
+    frame = 0
+    print(np.size(bg_sub_array))
+    while frame < np.size(bg_sub_array, 0):
+        print(frame)
+        image = bg_sub_array[frame]
+
+        startpoint = a[frame], 0
+        endpoint = a[frame], 100
+        color = (225, 255, 225)
+        thickness = 5
+        image = cv.line(image, startpoint, endpoint, color, thickness)
+        cv.imshow('frame', image)
+        frame += 1
+        key = cv.waitKey(1000)  # pauses for 3 seconds before fetching next image
+        if key == 27:  # if ESC is pressed, exit loop
+            cv.destroyAllWindows()
+            break
+
+
+def first_above_value(row):
+    return np.argmax(row > 30)
+
+
+def find_tongue_max(avg_vertical):
+    a = np.apply_along_axis(first_above_value, 1, avg_vertical)
+    return a
 
 
 # Returns an image of the first frame of the video inputted
@@ -23,6 +59,7 @@ def grab_first_frame(input_path):
     (exists_frame, frame) = cap.read()
     cap.release()
     return frame
+
 
 # Sometimes the crop method doesn't work??? Test it out a bunch of different ways
 # TODO: somehow figure out how to deal with different feeding tube orientations
@@ -77,9 +114,10 @@ def click_and_crop(event, x, y, flags, param):
 # ie. second frame y=240 x=600: [1][240, 600] <-- returns intensity
 def to_vertical_bands(input_array):
     # a = np.zeros(len(input_array))
-    input_array = input_array.mean(axis=1)
-    print(f'Frame count, Horizontal Resolution: {input_array.shape}')
-    np.savetxt('./data_output/foo.csv', input_array, delimiter=',')
+    avg_vert_array = input_array.mean(axis=1)
+    print(f'Frame count, Horizontal Resolution: {avg_vert_array.shape}')
+    np.savetxt('./data_output/foo.csv', avg_vert_array, delimiter=',')
+    return avg_vert_array
 
 
 # Simple background subtraction
@@ -125,8 +163,8 @@ def background_subtract(transform_data):
         # output.write(fg_mask)
         # cv.imshow('Frame', frame)
         # cv.imshow('FG Mask', fg_mask)
-        if cv.waitKey(25) & 0xFF == ord('q'):
-            break
+        # if cv.waitKey(25) & 0xFF == ord('q'):
+        #     break
     cap.release()
     # output.release()
     cv.destroyAllWindows()
