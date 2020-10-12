@@ -13,7 +13,7 @@ def order_points(pts):
     # Initialize a 4x2 array to be populated with coords
     # 0 = top left, 1 = top right, 2, = bottom right, 3 = bottom left
     rect = np.zeros((4, 2), dtype="float32")
-    
+
     # the top-left point will have the smallest sum, whereas
     # the bottom-right point will have the largest sum
     s = pts.sum(axis=1)
