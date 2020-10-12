@@ -15,21 +15,22 @@ def main():
     print("Done with background subtraction")
     avg_vertical = to_vertical_bands(bg_sub_array)
     a = find_tongue_max(avg_vertical)
-    test(a, bg_sub_array)
+    show_position(a, bg_sub_array)
+# TODO: REFACTOR YOUR SHITTY CODE!!!!! BREAK STUFF INTO ITS PARTS! SEPARATE INTO DIFF FILES!!
 
 
-def test(a, bg_sub_array):
+def show_position(estimated_position, background):
     # avg_vertical = np.genfromtxt('./data_output/foo.csv', delimiter=',')
     # a = np.apply_along_axis(first_above_value, 1, avg_vertical)
     # np.savetxt('./data_output/test.csv', a, delimiter=',')
     frame = 0
-    print(np.size(bg_sub_array))
-    while frame < np.size(bg_sub_array, 0):
+    print(np.size(background))
+    while frame < np.size(background, 0):
         print(frame)
-        image = bg_sub_array[frame]
+        image = background[frame]
 
-        startpoint = a[frame], 0
-        endpoint = a[frame], 100
+        startpoint = estimated_position[frame], 0
+        endpoint = estimated_position[frame], 100
         color = (225, 255, 225)
         thickness = 5
         image = cv.line(image, startpoint, endpoint, color, thickness)
@@ -42,7 +43,7 @@ def test(a, bg_sub_array):
 
 
 def first_above_value(row):
-    return np.argmax(row > 30)
+    return np.argmax(row > 150)
 
 
 def find_tongue_max(avg_vertical):
@@ -89,7 +90,7 @@ def select_corners(img):
     print("If unsatisfied with the crop, press 'Q' to Cancel")
     while True:
         cv.imshow("Cropped image. Press 'Y' to Continue", warped)
-        key = cv.waitKey(1) & 0xFF
+        key = cv.waitKey(0) & 0xFF
         if key == 27 or key == ord("q"):  # If the user presses Q or ESC
             cv.destroyAllWindows()
             sys.exit(-1)
@@ -141,7 +142,6 @@ def background_subtract(transform_data):
     total_frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
     # print(f'Frame resolution: Width={frame_width} Height={frame_height}')
     print(f'Total number of frames: {total_frame_count}')
-    print('Press Q to quit')
     # # Define the codec, create VideoWriter object.
     # output = cv.VideoWriter('./data_output/Background_Sub.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
     #                         3, (frame_width, frame_height), 0)
@@ -163,7 +163,7 @@ def background_subtract(transform_data):
         # output.write(fg_mask)
         # cv.imshow('Frame', frame)
         # cv.imshow('FG Mask', fg_mask)
-        # if cv.waitKey(25) & 0xFF == ord('q'):
+        # if cv.waitKey(1) & 0xFF == ord('q'):
         #     break
     cap.release()
     # output.release()
