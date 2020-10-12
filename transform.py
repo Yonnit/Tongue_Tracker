@@ -13,12 +13,18 @@ def order_points(pts):
     # Initialize a 4x2 array to be populated with coords
     # 0 = top left, 1 = top right, 2, = bottom right, 3 = bottom left
     rect = np.zeros((4, 2), dtype="float32")
-
+    print(pts)
     # the top-left point will have the smallest sum, whereas
     # the bottom-right point will have the largest sum
     s = pts.sum(axis=1)
-    rect[0] = pts[np.argmin(s)]
-    rect[2] = pts[np.argmax(s)]
+    array_min = np.argmin(s)
+    rect[0] = pts[array_min]
+    pts = np.delete(pts, array_min, 0)
+
+    s = pts.sum(axis=1)  # update the s array
+    array_max = np.argmax(s)
+    rect[2] = pts[array_max]
+    pts = np.delete(pts, array_max, 0)
 
     # now, compute the difference between the points, the
     # top-right point will have the smallest difference,
@@ -26,7 +32,7 @@ def order_points(pts):
     diff = np.diff(pts, axis=1)
     rect[1] = pts[np.argmin(diff)]
     rect[3] = pts[np.argmax(diff)]
-
+    print(rect)
     # return the ordered coordinates
     return rect
 
