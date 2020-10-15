@@ -7,14 +7,26 @@ from select_tube import get_tube
 
 
 def main():
-    input_path = file_and_path()
-    zoomed_video_arr = get_tube(input_path)
-    bg_sub_array = background_subtract(zoomed_video_arr)
+    # input_path = file_and_path()
+    # zoomed_video_arr = get_tube(input_path)
+    # np.save('./data_output/cropped_video.csv', zoomed_video_arr)
+    # bg_sub_array = background_subtract(zoomed_video_arr)
+    # np.save('./data_output/bg_sub.csv', bg_sub_array)
 
+    zoomed_video_arr = np.load('./data_output/cropped_video.npy')
+    bg_sub_array = np.load('./data_output/bg_sub.npy.')
     avg_vertical = to_vertical_bands(bg_sub_array)
     tongue_x_pos = find_tongue_max(avg_vertical)
-    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr)
-    save_arr_to_video(line_vid_arr, "estimated_position", 20)
+    np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
+    # meniscus_x_pos
+    # tongue_max_frames = get_x_max_frames(tongue_x_pos)
+    # line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr)
+    # save_arr_to_video(line_vid_arr, "estimated_position", 20)
+
+
+# def get_x_max_frames(x_position):
+#     for pos_at_frame in x_position:
+#         if pos_at_frame == -1:
 
 
 # Takes the estimated x position and a cropped video array
