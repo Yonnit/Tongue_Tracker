@@ -22,12 +22,13 @@ def main():
     # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
     meniscus_x_pos = find_meniscus(avg_vertical)
 
-    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr)
+    line_vid_arr = show_position(meniscus_x_pos, zoomed_video_arr)
     # save_arr_to_video(line_vid_arr, "estimated_position", 20)
 
 
 def find_meniscus(avg_vertical):
-    return avg_vertical.argmax(axis=1)
+    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=100, min_seg_length=10)
+    return frame_by_frame
 
 
 # Takes the estimated x position and a cropped video array
@@ -81,21 +82,22 @@ def contiguous_regions(condition):
 
 
 def find_tongue_max(avg_vertical):
-    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical)
+    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=5, min_seg_length=30)
     return frame_by_frame
 
 
 # Takes black and white vector as input and returns the first frame that
 # is above a certain intensity for a certain number of pixels as defined
 # by segment
-def contiguous_above_thresh(row):
-    threshold = 5  # TODO: Make this and the segment var a parameter passed from input args
+def contiguous_above_thresh(row, threshold, min_seg_length):
     condition = row > threshold  # Creates array of boolean values (True = above threshold)
     # print('Row Break')  # AKA new frame
     for start, stop in contiguous_regions(condition):  # For every
         # print('In For Loop')
         segment = row[start:stop]
-        if len(segment) > 30:  # If the above threshold pixels extend across length greater than 20 pixels return
+        # If the above threshold pixels extend across length greater than
+        # min_seg_length pixels return
+        if len(segment) > min_seg_length:
             return start
     return -1  # There were no segments longer than the minimum length with greater intensity than threshold
 
