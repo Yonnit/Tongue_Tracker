@@ -7,16 +7,16 @@ from transform import get_four_point_transform, apply_four_point_transform
 
 
 def main():
-    # input_path = file_and_path()
-    # first_frame = grab_first_frame(input_path)
-    # transform_data = select_corners(first_frame)
-    # print("Start background subtraction")
-    # bg_sub_array = background_subtract(transform_data)
-    # print("Done with background subtraction")
-    # avg_vertical = to_vertical_bands(bg_sub_array)
-    avg_vertical = np.genfromtxt('./data_output/foo.csv', delimiter=',')  # Remove after testing
+    input_path = file_and_path()
+    first_frame = grab_first_frame(input_path)
+    transform_data = select_corners(first_frame)
+    print("Start background subtraction")
+    bg_sub_array = background_subtract(transform_data)
+    print("Done with background subtraction")
+    avg_vertical = to_vertical_bands(bg_sub_array)
+    # avg_vertical = np.genfromtxt('./data_output/foo.csv', delimiter=',')  # Remove after testing
     a = find_tongue_max(avg_vertical)
-    # show_position(a, bg_sub_array)
+    show_position(a, bg_sub_array)
 # TODO: REFACTOR YOUR SHITTY CODE!!!!! BREAK STUFF INTO ITS PARTS! SEPARATE INTO DIFF FILES!!
 
 
@@ -33,7 +33,7 @@ def show_position(estimated_position, background):
         startpoint = estimated_position[frame], 0
         endpoint = estimated_position[frame], 100
         color = (225, 255, 225)
-        thickness = 5
+        thickness = 2
         image = cv.line(image, startpoint, endpoint, color, thickness)
         cv.imshow('frame', image)
         frame += 1
@@ -48,12 +48,12 @@ def first_above_value(row):
     return np.argmax(row > threshold)
 
 
-    # Finds contiguous True regions of the boolean array "condition". Returns
-    # a 2D array where the first column is the start index of the region and the
-    # second column is the end index.
+# Finds contiguous True regions of the boolean array "condition". Returns
+# a 2D array where the first column is the start index of the region and the
+# second column is the end index.
 def contiguous_regions(condition):
 
-    # Find the indicies of changes in "condition"
+    # Find the indices of changes in "condition"
     d = np.diff(condition)
     idx, = d.nonzero()
 
@@ -70,7 +70,7 @@ def contiguous_regions(condition):
         idx = np.r_[idx, condition.size] # Edit
 
     # Reshape the result into two columns
-    idx.shape = (-1,2)
+    idx.shape = (-1, 2)
     return idx
 
 
@@ -80,12 +80,15 @@ def find_tongue_max(avg_vertical):
 
 
 def contiguous_above_thresh(row):
-    threshold = 20
-    condition = row < threshold  # Creates array of boolean values (True = above threshold)
+    threshold = 5
+    condition = row > threshold  # Creates array of boolean values (True = above threshold)
+    print('Row Break')  # AKA new frame
     for start, stop in contiguous_regions(condition):
+        print('In For Loop')
         segment = row[start:stop]
-        print(start, stop)
-        print(segment.min(), segment.max())
+        if len(segment) > 20:  # If the above threshold pixels extend across length greater than 20 pixels return
+            return start
+    return -1  # There were no segments with greater than 20 pixels above threshold
 
 
 # Returns an image of the first frame of the video inputted
