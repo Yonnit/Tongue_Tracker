@@ -61,6 +61,7 @@ def select_corners(img):
     warped = apply_four_point_transform(img, transform_data)
 
     print("If unsatisfied with the crop, press 'Q' to Cancel")
+    print("Otherwise, press 'Y' to continue")
     while True:
         cv.imshow("Cropped image. Press 'Y' to Continue", warped)
         key = cv.waitKey(0) & 0xFF
@@ -83,6 +84,7 @@ def zoom_into_tube(transform_data, file_path):
         sys.exit(-1)
     total_frame_count = int(cap.get(cv.CAP_PROP_FRAME_COUNT))
     print(f'Total number of frames: {total_frame_count}')
+    print("Zooming into cropped region")
     video_array = []  # array of frames, index = frame # starting from 0
 
     while True:
@@ -96,4 +98,5 @@ def zoom_into_tube(transform_data, file_path):
     cv.destroyAllWindows()
 
     video_array = np.asarray(video_array)
+    print("Done with zooming")
     return video_array

@@ -4,7 +4,7 @@ import argparse
 import sys
 
 from select_tube import get_tube
-# TODO: Make saving video to output file function that takes array
+
 
 def main():
     input_path = file_and_path()
@@ -13,43 +13,43 @@ def main():
 
     avg_vertical = to_vertical_bands(bg_sub_array)
     a = find_tongue_max(avg_vertical)
-    show_position(a, bg_sub_array)
-# TODO: REFACTOR YOUR SHITTY CODE!!!!! BREAK STUFF INTO ITS PARTS! SEPARATE INTO DIFF FILES!!
+    show_position(a, zoomed_video_arr)
 
 
-def show_position(estimated_position, background):
+def show_position(estimated_position, video_to_compare_arr):
+    (frame_height, frame_width, rgb) = video_to_compare_arr[0].shape
+    # Define the codec, create VideoWriter object.
+    output = cv.VideoWriter('./data_output/show_estimated_pos.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+                            20, (frame_width, frame_height), True)
+
     # avg_vertical = np.genfromtxt('./data_output/foo.csv', delimiter=',')
     # a = np.apply_along_axis(first_above_value, 1, avg_vertical)
     # np.savetxt('./data_output/test.csv', a, delimiter=',')
     frame = 0
-    print(np.size(background))
-    while frame < np.size(background, 0):
+    print(np.size(video_to_compare_arr))
+    while frame < np.size(video_to_compare_arr, 0):
         print(frame)
-        image = background[frame]
+        image = video_to_compare_arr[frame]
 
-        startpoint = estimated_position[frame], 0
-        endpoint = estimated_position[frame], 100
-        color = (225, 255, 225)
-        thickness = 2
-        image = cv.line(image, startpoint, endpoint, color, thickness)
+        start_point = estimated_position[frame], 0
+        end_point = estimated_position[frame], 100
+        color = (0, 255, 0)
+        thickness = 1
+        image = cv.line(image, start_point, end_point, color, thickness)
         cv.imshow('frame', image)
+        output.write(image)
         frame += 1
-        key = cv.waitKey(1000)  # pauses for 3 seconds before fetching next image
+        key = cv.waitKey(8)
         if key == 27:  # if ESC is pressed, exit loop
-            cv.destroyAllWindows()
             break
-
-
-def first_above_value(row):
-    threshold = 20  # TODO: Make this a parameter passed from input args
-    return np.argmax(row > threshold)
+    output.release()
+    cv.destroyAllWindows()
 
 
 # Finds contiguous True regions of the boolean array "condition". Returns
 # a 2D array where the first column is the start index of the region and the
 # second column is the end index.
 def contiguous_regions(condition):
-
     # Find the indices of changes in "condition"
     d = np.diff(condition)
     idx, = d.nonzero()
@@ -64,7 +64,7 @@ def contiguous_regions(condition):
 
     if condition[-1]:
         # If the end of condition is True, append the length of the array
-        idx = np.r_[idx, condition.size] # Edit
+        idx = np.r_[idx, condition.size]  # Edit
 
     # Reshape the result into two columns
     idx.shape = (-1, 2)
@@ -76,14 +76,17 @@ def find_tongue_max(avg_vertical):
     return a
 
 
+# Takes black and white vector as input and returns the first frame that
+# is above a certain intensity for a certain number of pixels as defined
+# by segment
 def contiguous_above_thresh(row):
-    threshold = 5
+    threshold = 5  # TODO: Make this and the segment var a parameter passed from input args
     condition = row > threshold  # Creates array of boolean values (True = above threshold)
-    print('Row Break')  # AKA new frame
-    for start, stop in contiguous_regions(condition):
-        print('In For Loop')
+    # print('Row Break')  # AKA new frame
+    for start, stop in contiguous_regions(condition):  # For every
+        # print('In For Loop')
         segment = row[start:stop]
-        if len(segment) > 20:  # If the above threshold pixels extend across length greater than 20 pixels return
+        if len(segment) > 30:  # If the above threshold pixels extend across length greater than 20 pixels return
             return start
     return -1  # There were no segments with greater than 20 pixels above threshold
 
@@ -102,12 +105,12 @@ def to_vertical_bands(input_array):
 
 # TODO: allow user to set --algo to switch between MOG2 and KNN
 # Applies opencv's background subtract method to the inputted video
-# and returns that video as an array of
+# and returns that video as an array of frames that contain frame data.
 # The input must be an array of frames starting from 0
 def background_subtract(input_video_arr):
-    total_frame_count = len(input_video_arr)
-    print(f'Total number of frames: {total_frame_count}')
-    print('Starting background Subtract')
+    # total_frame_count = len(input_video_arr)
+    # print(f'Total number of frames: {total_frame_count}')
+    print('Starting Background Subtract')
     back_sub = cv.createBackgroundSubtractorMOG2(varThreshold=30, detectShadows=False)
     bg_subbed_vid_arr = []
     for frame in input_video_arr:
@@ -115,36 +118,8 @@ def background_subtract(input_video_arr):
         bg_subbed_vid_arr.append(foreground_mask)
 
     bg_subbed_vid_arr = np.asarray(bg_subbed_vid_arr)
+    print('Done with Background Subtract')
     return bg_subbed_vid_arr
-
-
-def view_video():
-    video_path = file_and_path()
-    cap = cv.VideoCapture(video_path)
-
-    # Checks if file opened
-    if not cap.isOpened():
-        print("Error opening video file")
-        sys.exit(-1)
-
-    cv.namedWindow('Frame', cv.WINDOW_AUTOSIZE)
-
-    # Read until end of video
-    while cap.isOpened():
-        (exists_frame, frame) = cap.read()
-
-        # Displays resulting frame
-        if exists_frame:
-            cv.imshow('Frame', frame)
-
-            # Press Q to exit
-            if cv.waitKey(25) & 0xFF == ord('q'):
-                break
-        else:
-            break
-    cap.release()
-    cv.destroyAllWindows()
-    print("Success...?")
 
 
 # Prompts user to input file name
@@ -160,6 +135,7 @@ def file_and_path():  # Will likely use argparse here
 if __name__ == '__main__':
     main()
 
+########################################################################################
 # Maybe stuff:
 
 # # construct the argument parse and parse the arguments
@@ -169,6 +145,40 @@ if __name__ == '__main__':
 # 	help = "comma seperated list of source points")
 # args = vars(ap.parse_args())
 
+##########################################################################################
+# Junkyard
+
+# def first_above_value(row):
+#     threshold = 20
+#     return np.argmax(row > threshold)
+
+# def view_video():
+#     video_path = file_and_path()
+#     cap = cv.VideoCapture(video_path)
+#
+#     # Checks if file opened
+#     if not cap.isOpened():
+#         print("Error opening video file")
+#         sys.exit(-1)
+#
+#     cv.namedWindow('Frame', cv.WINDOW_AUTOSIZE)
+#
+#     # Read until end of video
+#     while cap.isOpened():
+#         (exists_frame, frame) = cap.read()
+#
+#         # Displays resulting frame
+#         if exists_frame:
+#             cv.imshow('Frame', frame)
+#
+#             # Press Q to exit
+#             if cv.waitKey(25) & 0xFF == ord('q'):
+#                 break
+#         else:
+#             break
+#     cap.release()
+#     cv.destroyAllWindows()
+#     print("Success...?")
 
 # # Simple background subtraction
 # # Saves video to output file
