@@ -15,18 +15,19 @@ def main():
 
     zoomed_video_arr = np.load('./data_output/cropped_video.npy')
     bg_sub_array = np.load('./data_output/bg_sub.npy.')
+    bg_sub_array = np.asarray(bg_sub_array)
     avg_vertical = to_vertical_bands(bg_sub_array)
     tongue_x_pos = find_tongue_max(avg_vertical)
-    np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
-    # meniscus_x_pos
-    # tongue_max_frames = get_x_max_frames(tongue_x_pos)
-    # line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr)
+
+    # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
+    meniscus_x_pos = find_meniscus(avg_vertical)
+
+    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr)
     # save_arr_to_video(line_vid_arr, "estimated_position", 20)
 
 
-# def get_x_max_frames(x_position):
-#     for pos_at_frame in x_position:
-#         if pos_at_frame == -1:
+def find_meniscus(avg_vertical):
+    return avg_vertical.argmax(axis=1)
 
 
 # Takes the estimated x position and a cropped video array
@@ -96,7 +97,7 @@ def contiguous_above_thresh(row):
         segment = row[start:stop]
         if len(segment) > 30:  # If the above threshold pixels extend across length greater than 20 pixels return
             return start
-    return -1  # There were no segments with greater than 20 pixels above threshold
+    return -1  # There were no segments longer than the minimum length with greater intensity than threshold
 
 
 # TODO: make save vertical array to text optional
@@ -108,7 +109,7 @@ def to_vertical_bands(input_array):
     # a = np.zeros(len(input_array))
     avg_vert_array = input_array.mean(axis=1)
     print(f'Frame count, Horizontal Resolution: {avg_vert_array.shape}')
-    # np.savetxt('./data_output/foo.csv', avg_vert_array, delimiter=',')
+    # np.savetxt('./data_output/vertical_bands_arr.csv', avg_vert_array, delimiter=',')
     return avg_vert_array
 
 
