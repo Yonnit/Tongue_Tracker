@@ -13,37 +13,33 @@ def main():
 
     avg_vertical = to_vertical_bands(bg_sub_array)
     a = find_tongue_max(avg_vertical)
-    show_position(a, zoomed_video_arr)
+    line_vid_arr = show_position(a, zoomed_video_arr)
+    save_arr_to_video(line_vid_arr, "./data_output/estimated_position.avi", 20)
 
 
+# Takes the estimated x position and a cropped video array
+# Displays, then Returns a video array with the estimated x-position line
+# included in it.
 def show_position(estimated_position, video_to_compare_arr):
-    (frame_height, frame_width, rgb) = video_to_compare_arr[0].shape
-    # Define the codec, create VideoWriter object.
-    output = cv.VideoWriter('./data_output/show_estimated_pos.avi', cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
-                            20, (frame_width, frame_height), True)
-
-    # avg_vertical = np.genfromtxt('./data_output/foo.csv', delimiter=',')
-    # a = np.apply_along_axis(first_above_value, 1, avg_vertical)
-    # np.savetxt('./data_output/test.csv', a, delimiter=',')
-    frame = 0
-    print(np.size(video_to_compare_arr))
-    while frame < np.size(video_to_compare_arr, 0):
-        print(frame)
-        image = video_to_compare_arr[frame]
-
-        start_point = estimated_position[frame], 0
-        end_point = estimated_position[frame], 100
+    (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
+    line_video_arr = []
+    frame_num = 0
+    for frame in video_to_compare_arr:
+        # print(frame_num)
+        start_point = estimated_position[frame_num], 0
+        end_point = estimated_position[frame_num], frame_height
         color = (0, 255, 0)
         thickness = 1
-        image = cv.line(image, start_point, end_point, color, thickness)
-        cv.imshow('frame', image)
-        output.write(image)
-        frame += 1
-        key = cv.waitKey(8)
+        frame = cv.line(frame, start_point, end_point, color, thickness)
+        cv.imshow('frame', frame)
+        line_video_arr.append(frame)
+        key = cv.waitKey(8)  # waits 8ms between frames
         if key == 27:  # if ESC is pressed, exit loop
             break
-    output.release()
+        frame_num += 1
     cv.destroyAllWindows()
+    line_video_arr = np.asarray(line_video_arr)
+    return line_video_arr
 
 
 # Finds contiguous True regions of the boolean array "condition". Returns
@@ -91,6 +87,7 @@ def contiguous_above_thresh(row):
     return -1  # There were no segments with greater than 20 pixels above threshold
 
 
+# TODO: make save vertical array to text optional
 # Returns the average brightness of a vertical slice of pixels
 # Index represents frame starting from 0
 # Within the frame element [y,x] is the pixel location
@@ -99,7 +96,7 @@ def to_vertical_bands(input_array):
     # a = np.zeros(len(input_array))
     avg_vert_array = input_array.mean(axis=1)
     print(f'Frame count, Horizontal Resolution: {avg_vert_array.shape}')
-    np.savetxt('./data_output/foo.csv', avg_vert_array, delimiter=',')
+    # np.savetxt('./data_output/foo.csv', avg_vert_array, delimiter=',')
     return avg_vert_array
 
 
@@ -120,6 +117,19 @@ def background_subtract(input_video_arr):
     bg_subbed_vid_arr = np.asarray(bg_subbed_vid_arr)
     print('Done with Background Subtract')
     return bg_subbed_vid_arr
+
+
+def save_arr_to_video(arr_video_input, output_file_path, fps):
+    print("Saving to video")
+    (frame_height, frame_width, rgb_intensities) = arr_video_input[0].shape
+    # Define the codec, create VideoWriter object.
+    output = cv.VideoWriter(output_file_path, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+                            fps, (frame_width, frame_height), True)
+    for frame in arr_video_input:
+        output.write(frame)
+    output.release()
+    cv.destroyAllWindows()
+    print(f"Saved to {output_file_path}")
 
 
 # Prompts user to input file name
