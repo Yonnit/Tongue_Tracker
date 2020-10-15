@@ -3,6 +3,8 @@ import cv2
 
 # This code was written by Adrian Rosebrock and can be found at this link:
 # https://www.pyimagesearch.com/2014/08/25/4-point-opencv-getperspective-transform-example/
+# I made some minor modifications to the order_points function because it did not account for
+# all cases leading to bugs
 
 
 # pts are the coordinates selected by the user
