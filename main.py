@@ -12,9 +12,9 @@ def main():
     bg_sub_array = background_subtract(zoomed_video_arr)
 
     avg_vertical = to_vertical_bands(bg_sub_array)
-    a = find_tongue_max(avg_vertical)
-    line_vid_arr = show_position(a, zoomed_video_arr)
-    save_arr_to_video(line_vid_arr, "./data_output/estimated_position.avi", 20)
+    tongue_x_pos = find_tongue_max(avg_vertical)
+    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr)
+    save_arr_to_video(line_vid_arr, "estimated_position", 20)
 
 
 # Takes the estimated x position and a cropped video array
@@ -68,8 +68,8 @@ def contiguous_regions(condition):
 
 
 def find_tongue_max(avg_vertical):
-    a = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical)
-    return a
+    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical)
+    return frame_by_frame
 
 
 # Takes black and white vector as input and returns the first frame that
@@ -119,17 +119,20 @@ def background_subtract(input_video_arr):
     return bg_subbed_vid_arr
 
 
-def save_arr_to_video(arr_video_input, output_file_path, fps):
+# Takes a video array, the desired output file name, and the desired fps of the
+# outputted file. Saves an .avi video to the data_output folder with the desired name.
+def save_arr_to_video(arr_video_input, output_name, fps):
+    output_path_and_name = f"./data_output/{output_name}.avi"
     print("Saving to video")
     (frame_height, frame_width, rgb_intensities) = arr_video_input[0].shape
     # Define the codec, create VideoWriter object.
-    output = cv.VideoWriter(output_file_path, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+    output = cv.VideoWriter(output_path_and_name, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
                             fps, (frame_width, frame_height), True)
     for frame in arr_video_input:
         output.write(frame)
     output.release()
     cv.destroyAllWindows()
-    print(f"Saved to {output_file_path}")
+    print(f"Saved to {output_path_and_name}")
 
 
 # Prompts user to input file name
