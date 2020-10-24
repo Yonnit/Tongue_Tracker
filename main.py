@@ -2,6 +2,7 @@ import numpy as np
 import cv2 as cv
 import argparse
 import sys
+import scipy.stats as stats
 
 from select_tube import get_tube
 
@@ -9,26 +10,39 @@ from select_tube import get_tube
 def main():
     # input_path = file_and_path()
     # zoomed_video_arr = get_tube(input_path)
-    # np.save('./data_output/cropped_video.csv', zoomed_video_arr)
+    # np.save('./data_output/cropped_video', zoomed_video_arr)
     # bg_sub_array = background_subtract(zoomed_video_arr)
-    # np.save('./data_output/bg_sub.csv', bg_sub_array)
+    # np.save('./data_output/bg_sub', bg_sub_array)
 
     zoomed_video_arr = np.load('./data_output/cropped_video.npy')
     bg_sub_array = np.load('./data_output/bg_sub.npy.')
     bg_sub_array = np.asarray(bg_sub_array)
-    avg_vertical = to_vertical_bands(bg_sub_array)
-    tongue_x_pos = find_tongue_max(avg_vertical)
-
+    print(np.shape(bg_sub_array))
+    # avg_vertical = to_vertical_bands(bg_sub_array)
+    # tongue_x_pos = find_tongue_pos(avg_vertical)
     # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
-    meniscus_x_pos = find_meniscus(avg_vertical)
+
+    mode_vertical = mode_vert_bands(bg_sub_array)
+    # np.save('./data_output/mode_vertical', mode_vertical)
+    # mode_vertical = np.load('./data_output/mode_vertical.npy')
+    print(np.shape(mode_vertical))
+    np.savetxt('./data_output/meniscus_x_position.csv', mode_vertical[0, :, :], delimiter=',')
+    meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
+    np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
 
     line_vid_arr = show_position(meniscus_x_pos, zoomed_video_arr)
     # save_arr_to_video(line_vid_arr, "estimated_position", 20)
 
 
-def find_meniscus(avg_vertical):
-    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=100, min_seg_length=10)
-    return frame_by_frame
+def find_meniscus_pos(mode_vertical):
+    return np.argmax(mode_vertical, axis=1)
+
+
+def mode_vert_bands(input_array):
+    mode_vert_array = stats.mode(input_array, axis=1)
+    mode_vert_array = np.asarray(mode_vert_array)
+    mode_vert_array = np.squeeze(mode_vert_array)
+    return mode_vert_array
 
 
 # Takes the estimated x position and a cropped video array
@@ -81,7 +95,7 @@ def contiguous_regions(condition):
     return idx
 
 
-def find_tongue_max(avg_vertical):
+def find_tongue_pos(avg_vertical):
     frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=5, min_seg_length=30)
     return frame_by_frame
 
@@ -258,3 +272,19 @@ if __name__ == '__main__':
 #
 #     video_array = np.asarray(video_array)
 #     return video_array
+
+
+
+# The only way to get clean meniscus data as far as I can tell is by scanning from right to left
+# and using the argmax approach. It only saves the max value if its further from the opening than
+# the previous max value, and only if the change in x isn't too great (for random noise and jumps)
+
+# # A robust but unconventional way would be to use the find max method, then
+# # take the array and make it only allow the longest x values and saves that
+# def find_meniscus(avg_vertical):
+#     # frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=100, min_seg_length=10)
+#     # return frame_by_frame
+#     threshold = 80
+#     max_arr = np.argmax(avg_vertical, axis=1)
+#     max_arr[max_arr < threshold] = -1
+#     return max_arr
