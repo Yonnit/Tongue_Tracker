@@ -5,6 +5,14 @@
 video_input/
 data_output/
 
+# Ignores everything in the folder but the 
+images_to_video/*
+!images_to_video/imgs_to_video.py
+
+
+
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
