@@ -8,23 +8,25 @@ from select_tube import get_tube
 
 
 def main():
-    input_path = file_and_path()
-    zoomed_video_arr = get_tube(input_path)
-    bg_sub_array = background_subtract(zoomed_video_arr)
+    # input_path = file_and_path()
+    # zoomed_video_arr = get_tube(input_path)
+    # bg_sub_array = background_subtract(zoomed_video_arr)
 
     # np.save('./data_output/cropped_video', zoomed_video_arr)
     # np.save('./data_output/bg_sub', bg_sub_array)
 
-    # zoomed_video_arr = np.load('./data_output/cropped_video.npy')
-    # bg_sub_array = np.load('./data_output/bg_sub.npy.')
-    # bg_sub_array = np.asarray(bg_sub_array)
+    zoomed_video_arr = np.load('./data_output/cropped_video.npy')
+    bg_sub_array = np.load('./data_output/bg_sub.npy.')
+    bg_sub_array = np.asarray(bg_sub_array)
     # print(np.shape(bg_sub_array))
 
     avg_vertical = to_vertical_bands(bg_sub_array)
     mode_vertical = mode_vert_bands(bg_sub_array)
+    median_vertical = median_vert_bands(bg_sub_array)
 
     tongue_x_pos = find_tongue_pos(avg_vertical)
-    meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
+    # meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
+    meniscus_x_pos = find_meniscus_pos(median_vertical)
 
     # np.save('./data_output/mode_vertical', mode_vertical)
     # mode_vertical = np.load('./data_output/mode_vertical.npy')
@@ -34,12 +36,21 @@ def main():
     np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
     np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
-    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr)
-    save_arr_to_video(line_vid_arr, "estimated_position", 20)
+    line_vid_arr = show_position(meniscus_x_pos, zoomed_video_arr, is_color=True)
+    save_arr_to_video(line_vid_arr, "estimated_position", 20, is_color=True)
 
 
 def find_meniscus_pos(mode_vertical):
-    return np.argmax(mode_vertical, axis=1)
+    x_loc_mode = np.argmax(mode_vertical, axis=1)
+    print(x_loc_mode.size)
+    min_x = np.amax(x_loc_mode)
+    min_x_arr = []
+    for x in x_loc_mode:
+        if (x != 0) & (x < min_x):
+            min_x = x
+        min_x_arr.append(min_x)
+    return min_x_arr
+
 
 
 def mode_vert_bands(input_array):
@@ -49,18 +60,27 @@ def mode_vert_bands(input_array):
     return mode_vert_array
 
 
+def median_vert_bands(input_array):
+    return np.median(input_array, axis=1)
+
+
 # Takes the estimated x position and a cropped video array
 # Displays, then Returns a video array with the estimated x-position line
 # included in it.
-def show_position(estimated_position, video_to_compare_arr):
-    (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
+def show_position(estimated_position, video_to_compare_arr, is_color):
+    if is_color:
+        color = (0, 255, 0)
+        (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
+    else:
+        color = (255, 255, 255)
+        (frame_height, frame_width) = video_to_compare_arr[0].shape
+
     line_video_arr = []
     frame_num = 0
     for frame in video_to_compare_arr:
         # print(frame_num)
         start_point = estimated_position[frame_num], 0
         end_point = estimated_position[frame_num], frame_height
-        color = (0, 255, 0)
         thickness = 1
         frame = cv.line(frame, start_point, end_point, color, thickness)
         cv.imshow('frame', frame)
@@ -154,13 +174,19 @@ def background_subtract(input_video_arr):
 
 # Takes a video array, the desired output file name, and the desired fps of the
 # outputted file. Saves an .avi video to the data_output folder with the desired name.
-def save_arr_to_video(arr_video_input, output_name, fps):
+def save_arr_to_video(arr_video_input, output_name, fps, is_color):
     output_path_and_name = f"./data_output/{output_name}.avi"
     print("Saving to video")
-    (frame_height, frame_width, rgb_intensities) = arr_video_input[0].shape
+
     # Define the codec, create VideoWriter object.
-    output = cv.VideoWriter(output_path_and_name, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
-                            fps, (frame_width, frame_height), True)
+    if is_color:
+        (frame_height, frame_width, rgb_intensities) = arr_video_input[0].shape
+        output = cv.VideoWriter(output_path_and_name, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+                                fps, (frame_width, frame_height), True)
+    else:
+        (frame_height, frame_width) = arr_video_input[0].shape
+        output = cv.VideoWriter(output_path_and_name, cv.VideoWriter_fourcc('M', 'J', 'P', 'G'),
+                                fps, (frame_width, frame_height), False)
     for frame in arr_video_input:
         output.write(frame)
     output.release()
