@@ -64,6 +64,7 @@ def select_corners(img):
     print("Otherwise, press 'Y' to continue")
     while True:
         cv.imshow("Cropped image. Press 'Y' to Continue", warped)
+        print(f"The dimensions of the cropped image: Height={warped.shape[0]}, Width={warped.shape[1]}")
         key = cv.waitKey(0) & 0xFF
         if key == 27 or key == ord("q"):  # If the user presses Q or ESC
             cv.destroyAllWindows()

@@ -1,37 +1,41 @@
 import numpy as np
 import cv2 as cv
-import argparse
-import sys
+# import argparse
+# import sys
 import scipy.stats as stats
 
 from select_tube import get_tube
 
 
 def main():
-    # input_path = file_and_path()
-    # zoomed_video_arr = get_tube(input_path)
+    input_path = file_and_path()
+    zoomed_video_arr = get_tube(input_path)
+    bg_sub_array = background_subtract(zoomed_video_arr)
+
     # np.save('./data_output/cropped_video', zoomed_video_arr)
-    # bg_sub_array = background_subtract(zoomed_video_arr)
     # np.save('./data_output/bg_sub', bg_sub_array)
 
-    zoomed_video_arr = np.load('./data_output/cropped_video.npy')
-    bg_sub_array = np.load('./data_output/bg_sub.npy.')
-    bg_sub_array = np.asarray(bg_sub_array)
-    print(np.shape(bg_sub_array))
-    # avg_vertical = to_vertical_bands(bg_sub_array)
-    # tongue_x_pos = find_tongue_pos(avg_vertical)
-    # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
+    # zoomed_video_arr = np.load('./data_output/cropped_video.npy')
+    # bg_sub_array = np.load('./data_output/bg_sub.npy.')
+    # bg_sub_array = np.asarray(bg_sub_array)
+    # print(np.shape(bg_sub_array))
 
+    avg_vertical = to_vertical_bands(bg_sub_array)
     mode_vertical = mode_vert_bands(bg_sub_array)
+
+    tongue_x_pos = find_tongue_pos(avg_vertical)
+    meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
+
     # np.save('./data_output/mode_vertical', mode_vertical)
     # mode_vertical = np.load('./data_output/mode_vertical.npy')
-    print(np.shape(mode_vertical))
-    np.savetxt('./data_output/meniscus_x_position.csv', mode_vertical[0, :, :], delimiter=',')
-    meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
-    np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
+    # np.savetxt('./data_output/meniscus_x_position.csv', mode_vertical[0, :, :], delimiter=',')
+    # print(np.shape(mode_vertical))
 
-    line_vid_arr = show_position(meniscus_x_pos, zoomed_video_arr)
-    # save_arr_to_video(line_vid_arr, "estimated_position", 20)
+    np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
+    np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
+
+    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr)
+    save_arr_to_video(line_vid_arr, "estimated_position", 20)
 
 
 def find_meniscus_pos(mode_vertical):
@@ -168,7 +172,7 @@ def save_arr_to_video(arr_video_input, output_name, fps):
 # Returns path and name in directory
 # TODO: configure argparse so user selects file location, and other params
 def file_and_path():  # Will likely use argparse here
-    input_file_name = "Export_20171211_015532_PM.avi"
+    input_file_name = "vid_from_imgs.avi"
     path = "./video_input/"
     return path + input_file_name
 
