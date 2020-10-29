@@ -21,11 +21,9 @@ def main():
     # print(np.shape(bg_sub_array))
 
     avg_vertical = to_vertical_bands(bg_sub_array)
-    mode_vertical = mode_vert_bands(bg_sub_array)
     median_vertical = median_vert_bands(bg_sub_array)
 
     tongue_x_pos = find_tongue_pos(avg_vertical)
-    # meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
     meniscus_x_pos = find_meniscus_pos(median_vertical)
 
     # np.save('./data_output/mode_vertical', mode_vertical)
@@ -36,7 +34,7 @@ def main():
     np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
     np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
-    line_vid_arr = show_position(meniscus_x_pos, zoomed_video_arr, is_color=True)
+    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr, is_color=True)
     save_arr_to_video(line_vid_arr, "estimated_position", 20, is_color=True)
 
 
@@ -50,14 +48,6 @@ def find_meniscus_pos(mode_vertical):
             min_x = x
         min_x_arr.append(min_x)
     return min_x_arr
-
-
-
-def mode_vert_bands(input_array):
-    mode_vert_array = stats.mode(input_array, axis=1)
-    mode_vert_array = np.asarray(mode_vert_array)
-    mode_vert_array = np.squeeze(mode_vert_array)
-    return mode_vert_array
 
 
 def median_vert_bands(input_array):
@@ -120,7 +110,7 @@ def contiguous_regions(condition):
 
 
 def find_tongue_pos(avg_vertical):
-    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=5, min_seg_length=30)
+    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=1, min_seg_length=30)
     return frame_by_frame
 
 
@@ -209,6 +199,15 @@ if __name__ == '__main__':
 
 ########################################################################################
 # Maybe stuff:
+
+    # mode_vertical = mode_vert_bands(bg_sub_array)
+    # meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
+# def mode_vert_bands(input_array):
+#     mode_vert_array = stats.mode(input_array, axis=1)
+#     mode_vert_array = np.asarray(mode_vert_array)
+#     mode_vert_array = np.squeeze(mode_vert_array)
+#     return mode_vert_array
+
 
 # # construct the argument parse and parse the arguments
 # ap = argparse.ArgumentParser()
