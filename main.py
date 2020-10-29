@@ -2,7 +2,7 @@ import numpy as np
 import cv2 as cv
 # import argparse
 # import sys
-import scipy.stats as stats
+# import scipy.stats as stats
 
 from select_tube import get_tube
 
@@ -34,8 +34,8 @@ def main():
     np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
     np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
-    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr, is_color=True)
-    save_arr_to_video(line_vid_arr, "estimated_position", 20, is_color=True)
+    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr, True, meniscus_x_pos)
+    save_arr_to_video(line_vid_arr, "estimated_position", 20, True)
 
 
 def find_meniscus_pos(mode_vertical):
@@ -56,8 +56,9 @@ def median_vert_bands(input_array):
 
 # Takes the estimated x position and a cropped video array
 # Displays, then Returns a video array with the estimated x-position line
-# included in it.
-def show_position(estimated_position, video_to_compare_arr, is_color):
+# included in it. Can include additional inputted positions in the
+# *args.
+def show_position(estimated_position, video_to_compare_arr, is_color, *args):
     if is_color:
         color = (0, 255, 0)
         (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
@@ -69,10 +70,17 @@ def show_position(estimated_position, video_to_compare_arr, is_color):
     frame_num = 0
     for frame in video_to_compare_arr:
         # print(frame_num)
+
         start_point = estimated_position[frame_num], 0
         end_point = estimated_position[frame_num], frame_height
         thickness = 1
         frame = cv.line(frame, start_point, end_point, color, thickness)
+
+        for arg in args:
+            start_point = arg[frame_num], 0
+            end_point = arg[frame_num], frame_height
+            frame = cv.line(frame, start_point, end_point, color, thickness)
+
         cv.imshow('frame', frame)
         line_video_arr.append(frame)
         key = cv.waitKey(8)  # waits 8ms between frames
