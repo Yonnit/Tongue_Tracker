@@ -162,7 +162,7 @@ def background_subtract(input_video_arr):
     back_sub = cv.createBackgroundSubtractorMOG2(varThreshold=30, detectShadows=False)
     bg_subbed_vid_arr = []
     for frame in input_video_arr:
-        foreground_mask = back_sub.apply(frame)
+        foreground_mask = back_sub.apply(frame)  # try: back_sub.apply(frame, learningRate=0) (or other very low number)
         bg_subbed_vid_arr.append(foreground_mask)
 
     bg_subbed_vid_arr = np.asarray(bg_subbed_vid_arr)
