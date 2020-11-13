@@ -8,16 +8,15 @@ from select_tube import get_tube
 
 
 def main():
-    # input_path = file_and_path()
-    # zoomed_video_arr = get_tube(input_path)
-    # bg_sub_array = background_subtract(zoomed_video_arr)
+    input_path = file_and_path()
+    zoomed_video_arr = get_tube(input_path)
+    bg_sub_array = background_subtract(zoomed_video_arr)
 
-    # np.save('./data_output/cropped_video', zoomed_video_arr)
-    # np.save('./data_output/bg_sub', bg_sub_array)
+    np.save('./data_output/cropped_video', zoomed_video_arr)
+    np.save('./data_output/bg_sub', bg_sub_array)
 
-    zoomed_video_arr = np.load('./data_output/cropped_video.npy')
-    bg_sub_array = np.load('./data_output/bg_sub.npy.')
-    bg_sub_array = np.asarray(bg_sub_array)
+    # zoomed_video_arr = np.load('./data_output/cropped_video.npy')
+    # bg_sub_array = np.load('./data_output/bg_sub.npy.')
     # print(np.shape(bg_sub_array))
 
     avg_vertical = to_vertical_bands(bg_sub_array)
@@ -31,8 +30,8 @@ def main():
     # np.savetxt('./data_output/meniscus_x_position.csv', mode_vertical[0, :, :], delimiter=',')
     # print(np.shape(mode_vertical))
 
-    np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
-    np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
+    # np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
+    # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
     line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr, True, meniscus_x_pos)
     save_arr_to_video(line_vid_arr, "estimated_position", 20, True)
@@ -134,7 +133,7 @@ def contiguous_above_thresh(row, threshold, min_seg_length):
         # If the above threshold pixels extend across length greater than
         # min_seg_length pixels return
         if len(segment) > min_seg_length:
-            return start
+            return start  # If the x axis is flipped, should return stop.
     return -1  # There were no segments longer than the minimum length with greater intensity than threshold
 
 
@@ -162,7 +161,8 @@ def background_subtract(input_video_arr):
     back_sub = cv.createBackgroundSubtractorMOG2(varThreshold=30, detectShadows=False)
     bg_subbed_vid_arr = []
     for frame in input_video_arr:
-        foreground_mask = back_sub.apply(frame)  # try: back_sub.apply(frame, learningRate=0) (or other very low number)
+        foreground_mask = back_sub.apply(frame)  # try: back_sub.apply(frame, learningRate=0) (or other very low
+        # number or very low negative number)
         bg_subbed_vid_arr.append(foreground_mask)
 
     bg_subbed_vid_arr = np.asarray(bg_subbed_vid_arr)

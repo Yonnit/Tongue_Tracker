@@ -8,8 +8,8 @@ from transform import get_four_point_transform, apply_four_point_transform
 # Gets tube corners and returns video array zoomed in on the tube
 def get_tube(file_path):  # TODO: make filepath user inputted
     first_frame = grab_first_frame(file_path)
-    tube_location_data = select_corners(first_frame)
-    vid_tube = zoom_into_tube(tube_location_data, file_path)
+    (tube_location_data, opening_is_left) = select_corners(first_frame)
+    vid_tube = zoom_into_tube(tube_location_data, file_path, opening_is_left)
     return vid_tube
 
 
@@ -60,25 +60,31 @@ def select_corners(img):
     transform_data = get_four_point_transform(corner_array)
     warped = apply_four_point_transform(img, transform_data)
 
-    print("If unsatisfied with the crop, press 'Q' to Cancel")
-    print("Otherwise, press 'Y' to continue")
+    print(f"The dimensions of the cropped image: Height={warped.shape[0]}, Width={warped.shape[1]}")
+    print()
+    print("If UNSATISFIED with the crop, press 'Q' to Cancel")
+    print("If SATISFIED with the crop, please select the direction of the opening of the tube to continue.")
+    print("'L' if the opening is on the left, and 'R' if the opening is on the right")
     while True:
-        cv.imshow("Cropped image. Press 'Y' to Continue", warped)
-        print(f"The dimensions of the cropped image: Height={warped.shape[0]}, Width={warped.shape[1]}")
+        cv.imshow("Cropped image. Read console for instructions", warped)
         key = cv.waitKey(0) & 0xFF
         if key == 27 or key == ord("q"):  # If the user presses Q or ESC
             cv.destroyAllWindows()
             sys.exit(-1)
-        elif key == ord("y"):
+        elif key == ord("l"):
+            opening_is_left = True
+            break
+        elif key == ord("r"):
+            opening_is_left = False
             break
     cv.destroyAllWindows()
-    return transform_data
+    return transform_data, opening_is_left
 
 
 # Takes the corner coordinate data and zooms the video into the coordinate
 # data collected. Returns an array which contains the frame data with the
 # index being the frame number starting from 0.
-def zoom_into_tube(transform_data, file_path):
+def zoom_into_tube(transform_data, file_path, opening_is_left):
     cap = cv.VideoCapture(file_path)
     if not cap.isOpened():
         print('Error opening video file')
@@ -94,10 +100,13 @@ def zoom_into_tube(transform_data, file_path):
         if not exists_frame:
             break
         cropped_frame = apply_four_point_transform(frame, transform_data)
+        if not opening_is_left:
+            cropped_frame = cv.flip(cropped_frame, 1)
         video_array.append(cropped_frame)
     cap.release()
     cv.destroyAllWindows()
 
     video_array = np.asarray(video_array)
     print("Done with zooming")
+    print()
     return video_array
