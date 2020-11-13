@@ -8,15 +8,15 @@ from select_tube import get_tube
 
 
 def main():
-    input_path = file_and_path()
-    zoomed_video_arr = get_tube(input_path)
-    bg_sub_array = background_subtract(zoomed_video_arr)
+    # input_path = file_and_path()
+    # zoomed_video_arr = get_tube(input_path)
+    # bg_sub_array = background_subtract(zoomed_video_arr)
+    #
+    # np.save('./data_output/cropped_video', zoomed_video_arr)
+    # np.save('./data_output/bg_sub', bg_sub_array)
 
-    np.save('./data_output/cropped_video', zoomed_video_arr)
-    np.save('./data_output/bg_sub', bg_sub_array)
-
-    # zoomed_video_arr = np.load('./data_output/cropped_video.npy')
-    # bg_sub_array = np.load('./data_output/bg_sub.npy.')
+    zoomed_video_arr = np.load('./data_output/cropped_video.npy')
+    bg_sub_array = np.load('./data_output/bg_sub.npy.')
     # print(np.shape(bg_sub_array))
 
     avg_vertical = to_vertical_bands(bg_sub_array)
@@ -30,11 +30,17 @@ def main():
     # np.savetxt('./data_output/meniscus_x_position.csv', mode_vertical[0, :, :], delimiter=',')
     # print(np.shape(mode_vertical))
 
-    # np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
-    # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
+    np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
+    np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
-    line_vid_arr = show_position(tongue_x_pos, zoomed_video_arr, True, meniscus_x_pos)
-    save_arr_to_video(line_vid_arr, "estimated_position", 20, True)
+    line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False, meniscus_x_pos)
+    save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
+
+
+def find_tongue_center(input_video_arr):
+    non_zero_index = np.nonzero(input_video_arr)
+    for
+
 
 
 def find_meniscus_pos(mode_vertical):
@@ -82,7 +88,7 @@ def show_position(estimated_position, video_to_compare_arr, is_color, *args):
 
         cv.imshow('frame', frame)
         line_video_arr.append(frame)
-        key = cv.waitKey(8)  # waits 8ms between frames
+        key = cv.waitKey(50)  # waits 8ms between frames
         if key == 27:  # if ESC is pressed, exit loop
             break
         frame_num += 1
@@ -133,7 +139,7 @@ def contiguous_above_thresh(row, threshold, min_seg_length):
         # If the above threshold pixels extend across length greater than
         # min_seg_length pixels return
         if len(segment) > min_seg_length:
-            return start  # If the x axis is flipped, should return stop.
+            return stop  # If the x axis is flipped, should return stop.
     return -1  # There were no segments longer than the minimum length with greater intensity than threshold
 
 
