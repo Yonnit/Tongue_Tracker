@@ -20,43 +20,52 @@ def main():
     # print(np.shape(bg_sub_array))
 
     avg_vertical = to_vertical_bands(bg_sub_array)
-    median_vertical = median_vert_bands(bg_sub_array)
 
-    tongue_x_pos = find_tongue_pos(avg_vertical)
-    meniscus_x_pos = find_meniscus_pos(median_vertical)
+    tongue_x_pos = find_tongue_x_max(avg_vertical)
+    tongue_y_pos = find_tongue_y_pos(bg_sub_array)
+    print(np.shape(tongue_y_pos))
 
     # np.save('./data_output/mode_vertical', mode_vertical)
     # mode_vertical = np.load('./data_output/mode_vertical.npy')
     # np.savetxt('./data_output/meniscus_x_position.csv', mode_vertical[0, :, :], delimiter=',')
     # print(np.shape(mode_vertical))
 
-    np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
+    # np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
     np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
-    line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False, meniscus_x_pos)
-    save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
+    dot_vid_arr = show_tongue_loc(tongue_x_pos, tongue_y_pos, zoomed_video_arr)
+    save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
+
+    # line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False)  # , meniscus_x_pos (add to end later)
+    # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
 
 
-def find_tongue_center(input_video_arr):
-    non_zero_index = np.nonzero(input_video_arr)
-    for
+def show_tongue_loc(tongue_x_pos, tongue_y_pos, video_to_compare_arr):
+    color = (0, 255, 0)
+    (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
 
+    line_video_arr = []
+    frame_num = 0
+    for frame in video_to_compare_arr:
+        print(frame_num)
 
+        thickness = 1
+        radius = 1
 
-def find_meniscus_pos(mode_vertical):
-    x_loc_mode = np.argmax(mode_vertical, axis=1)
-    print(x_loc_mode.size)
-    min_x = np.amax(x_loc_mode)
-    min_x_arr = []
-    for x in x_loc_mode:
-        if (x != 0) & (x < min_x):
-            min_x = x
-        min_x_arr.append(min_x)
-    return min_x_arr
+        x_val = np.arange(tongue_x_pos[frame_num])  # might have to do tongue_x_pos[frame_num] + 1 if values are cut off
+        for x in x_val:
+            center_coordinates = x, tongue_y_pos[frame_num, x]
+            frame = cv.circle(frame, center_coordinates, radius, color, thickness)
 
-
-def median_vert_bands(input_array):
-    return np.median(input_array, axis=1)
+        cv.imshow('frame', frame)
+        line_video_arr.append(frame)
+        key = cv.waitKey(50)  # waits 8ms between frames
+        if key == 27:  # if ESC is pressed, exit loop
+            break
+        frame_num += 1
+    cv.destroyAllWindows()
+    line_video_arr = np.asarray(line_video_arr)
+    return line_video_arr
 
 
 # Takes the estimated x position and a cropped video array
@@ -122,9 +131,20 @@ def contiguous_regions(condition):
     return idx
 
 
-def find_tongue_pos(avg_vertical):
+def find_tongue_x_max(avg_vertical):
     frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=1, min_seg_length=30)
     return frame_by_frame
+
+
+def find_tongue_y_pos(bg_sub_arr):
+    y_pos_arr = np.apply_along_axis(average_indices, 1, bg_sub_arr)
+    return y_pos_arr
+
+
+def average_indices(one_dimension_array):
+    indices = np.nonzero(one_dimension_array)
+    avg_index = np.mean(indices, dtype=np.dtype(int))
+    return avg_index
 
 
 # Takes black and white vector as input and returns the first frame that
@@ -167,8 +187,7 @@ def background_subtract(input_video_arr):
     back_sub = cv.createBackgroundSubtractorMOG2(varThreshold=30, detectShadows=False)
     bg_subbed_vid_arr = []
     for frame in input_video_arr:
-        foreground_mask = back_sub.apply(frame)  # try: back_sub.apply(frame, learningRate=0) (or other very low
-        # number or very low negative number)
+        foreground_mask = back_sub.apply(frame)  # try: back_sub.apply(frame, learningRate=0)
         bg_subbed_vid_arr.append(foreground_mask)
 
     bg_subbed_vid_arr = np.asarray(bg_subbed_vid_arr)
@@ -214,8 +233,8 @@ if __name__ == '__main__':
 ########################################################################################
 # Maybe stuff:
 
-    # mode_vertical = mode_vert_bands(bg_sub_array)
-    # meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
+# mode_vertical = mode_vert_bands(bg_sub_array)
+# meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
 # def mode_vert_bands(input_array):
 #     mode_vert_array = stats.mode(input_array, axis=1)
 #     mode_vert_array = np.asarray(mode_vert_array)
@@ -232,6 +251,22 @@ if __name__ == '__main__':
 
 ##########################################################################################
 # Junkyard
+
+
+# def find_meniscus_pos(mode_vertical):
+#     x_loc_mode = np.argmax(mode_vertical, axis=1)
+#     print(x_loc_mode.size)
+#     min_x = np.amax(x_loc_mode)
+#     min_x_arr = []
+#     for x in x_loc_mode:
+#         if (x != 0) & (x < min_x):
+#             min_x = x
+#         min_x_arr.append(min_x)
+#     return min_x_arr
+#
+#
+# def median_vert_bands(input_array):
+#     return np.median(input_array, axis=1)
 
 # def first_above_value(row):
 #     threshold = 20
@@ -315,7 +350,6 @@ if __name__ == '__main__':
 #
 #     video_array = np.asarray(video_array)
 #     return video_array
-
 
 
 # The only way to get clean meniscus data as far as I can tell is by scanning from right to left
