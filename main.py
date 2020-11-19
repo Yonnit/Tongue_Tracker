@@ -5,6 +5,7 @@ import cv2 as cv
 # import scipy.stats as stats
 
 from select_tube import get_tube
+from find_tongue_position import tongue_xy_pos
 
 
 def main():
@@ -18,12 +19,8 @@ def main():
     zoomed_video_arr = np.load('./data_output/cropped_video.npy')
     bg_sub_array = np.load('./data_output/bg_sub.npy.')
     # print(np.shape(bg_sub_array))
+    tongue_xy_pos(bg_sub_array)
 
-    avg_vertical = to_vertical_bands(bg_sub_array)
-
-    tongue_x_pos = find_tongue_x_max(avg_vertical)
-    tongue_y_pos = find_tongue_y_pos(bg_sub_array)
-    print(np.shape(tongue_y_pos))
 
     # np.save('./data_output/mode_vertical', mode_vertical)
     # mode_vertical = np.load('./data_output/mode_vertical.npy')
@@ -31,10 +28,10 @@ def main():
     # print(np.shape(mode_vertical))
 
     # np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
-    np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
+    # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
-    dot_vid_arr = show_tongue_loc(tongue_x_pos, tongue_y_pos, zoomed_video_arr)
-    save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
+    # dot_vid_arr = show_tongue_loc(tongue_x_pos, tongue_y_pos, zoomed_video_arr)
+    # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 
     # line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False)  # , meniscus_x_pos (add to end later)
     # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
@@ -106,74 +103,6 @@ def show_position(estimated_position, video_to_compare_arr, is_color, *args):
     return line_video_arr
 
 
-# Finds contiguous True regions of the boolean array "condition". Returns
-# a 2D array where the first column is the start index of the region and the
-# second column is the end index.
-def contiguous_regions(condition):
-    # Find the indices of changes in "condition"
-    d = np.diff(condition)
-    idx, = d.nonzero()
-
-    # We need to start things after the change in "condition". Therefore,
-    # we'll shift the index by 1 to the right.
-    idx += 1
-
-    if condition[0]:
-        # If the start of condition is True prepend a 0
-        idx = np.r_[0, idx]
-
-    if condition[-1]:
-        # If the end of condition is True, append the length of the array
-        idx = np.r_[idx, condition.size]  # Edit
-
-    # Reshape the result into two columns
-    idx.shape = (-1, 2)
-    return idx
-
-
-def find_tongue_x_max(avg_vertical):
-    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=1, min_seg_length=30)
-    return frame_by_frame
-
-
-def find_tongue_y_pos(bg_sub_arr):
-    y_pos_arr = np.apply_along_axis(average_indices, 1, bg_sub_arr)
-    return y_pos_arr
-
-
-def average_indices(one_dimension_array):
-    indices = np.nonzero(one_dimension_array)
-    avg_index = np.mean(indices, dtype=np.dtype(int))
-    return avg_index
-
-
-# Takes black and white vector as input and returns the first frame that
-# is above a certain intensity for a certain number of pixels as defined
-# by segment
-def contiguous_above_thresh(row, threshold, min_seg_length):
-    condition = row > threshold  # Creates array of boolean values (True = above threshold)
-    # print('Row Break')  # AKA new frame
-    for start, stop in contiguous_regions(condition):  # For every
-        # print('In For Loop')
-        segment = row[start:stop]
-        # If the above threshold pixels extend across length greater than
-        # min_seg_length pixels return
-        if len(segment) > min_seg_length:
-            return stop  # If the x axis is flipped, should return stop.
-    return -1  # There were no segments longer than the minimum length with greater intensity than threshold
-
-
-# TODO: make save vertical array to text optional
-# Returns the average brightness of a vertical slice of pixels
-# Index represents frame starting from 0
-# Within the frame element [y,x] is the pixel location
-# ie. second frame y=240 x=600: [1][240, 600] <-- returns intensity
-def to_vertical_bands(input_array):
-    # a = np.zeros(len(input_array))
-    avg_vert_array = input_array.mean(axis=1)
-    print(f'Frame count, Horizontal Resolution: {avg_vert_array.shape}')
-    # np.savetxt('./data_output/vertical_bands_arr.csv', avg_vert_array, delimiter=',')
-    return avg_vert_array
 
 
 # TODO: allow user to set --algo to switch between MOG2 and KNN
