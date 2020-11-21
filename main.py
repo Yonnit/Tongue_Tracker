@@ -5,7 +5,7 @@ import cv2 as cv
 # import scipy.stats as stats
 
 from select_tube import get_tube
-from find_tongue_position import tongue_xy_pos
+from find_tongue_position import find_tongue_xy_pos
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
     zoomed_video_arr = np.load('./data_output/cropped_video.npy')
     bg_sub_array = np.load('./data_output/bg_sub.npy.')
     # print(np.shape(bg_sub_array))
-    tongue_xy_pos(bg_sub_array)
+    tongue_xy_coords = find_tongue_xy_pos(bg_sub_array)
 
 
     # np.save('./data_output/mode_vertical', mode_vertical)
