@@ -8,12 +8,12 @@ def find_tongue_xy_pos(bg_sub_array):
     avg_vertical = to_vertical_bands(bg_sub_array)
     tongue_x_max = find_tongue_x_max(avg_vertical)
     median_y_position = find_median_y_position(bg_sub_array)
-    print(np.shape(median_y_position))
-    print(median_y_position[350, :])
+    # print(np.shape(median_y_position))
+    # print(median_y_position[350, :])
 
     xy_coords = combine_xy_coords(tongue_x_max, median_y_position)
-    print(np.shape(xy_coords))
-    print(xy_coords[350])
+    # print(np.shape(xy_coords))
+    # print(xy_coords[350])
     return xy_coords
 
 

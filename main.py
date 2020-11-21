@@ -12,14 +12,15 @@ from find_meniscus_shape import find_meniscus_shape
 def main():
     # input_path = file_and_path()
     # zoomed_video_arr = get_tube(input_path)
-    # bg_sub_array = background_subtract(zoomed_video_arr, -1)
+    # bg_sub_array = background_subtract(zoomed_video_arr)
     #
     # np.save('./data_output/cropped_video', zoomed_video_arr)
     # np.save('./data_output/bg_sub', bg_sub_array)
 
     zoomed_video_arr = np.load('./data_output/cropped_video.npy')
     bg_sub_array = np.load('./data_output/bg_sub.npy.')
-    print(np.shape(bg_sub_array))
+    # print(np.shape(bg_sub_array))
+
     no_learning_bg_sub_array = background_subtract(zoomed_video_arr, 0)
     meniscus_shape = find_meniscus_shape(no_learning_bg_sub_array)
     show_meniscus_loc(meniscus_shape, zoomed_video_arr)
@@ -75,7 +76,7 @@ def show_tongue_loc(tongue_xy_coords, video_to_compare_arr):
     line_video_arr = []
     frame_num = 0
     for frame in video_to_compare_arr:
-        print(frame_num)
+        # print(frame_num)
 
         thickness = 1
         radius = 1
