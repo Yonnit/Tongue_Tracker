@@ -59,14 +59,14 @@ def find_median_index(one_dimension_array):
 def to_vertical_bands(input_array):
     # a = np.zeros(len(input_array))
     avg_vert_array = input_array.mean(axis=1)
-    print(f'Frame count, Horizontal Resolution: {avg_vert_array.shape}')
+    print(f'Frame count={avg_vert_array.shape[0]} Horizontal Resolution={avg_vert_array.shape[1]}')
     # np.savetxt('./data_output/vertical_bands_arr.csv', avg_vert_array, delimiter=',')
     return avg_vert_array
 
 
 # TODO: make min_seg_length and threshold changeable by user input
 def find_tongue_x_max(avg_vertical):
-    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, threshold=1, min_seg_length=30)
+    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, min_seg_length=30)
     return frame_by_frame
 
 
