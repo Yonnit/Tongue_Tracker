@@ -1,7 +1,7 @@
 import numpy as np
 
 
-from find_contiguous_regions import contiguous_regions
+from find_contiguous_regions import contiguous_above_thresh
 
 
 def find_tongue_xy_pos(bg_sub_array):
@@ -17,7 +17,7 @@ def find_tongue_xy_pos(bg_sub_array):
     return xy_coords
 
 
-# Returns a list of frames that contain lists of
+# might be removed later when mensicus shape is implemented
 def combine_xy_coords(x_max, y):
     total_frames = np.shape(x_max)[0]
     frame_xy_pos = [[] for i in range(total_frames)]
@@ -25,7 +25,7 @@ def combine_xy_coords(x_max, y):
     frame_num = 0
     for frame in frame_xy_pos:
         for x in range(x_max[frame_num]):
-            coordinates = x, y[frame_num, x]
+            coordinates = y[frame_num, x]
             frame.append(coordinates)
         frame_num += 1
     return frame_xy_pos
@@ -49,22 +49,6 @@ def find_median_index(one_dimension_array):
     if np.isnan(median_index):
         median_index = -2147483648  # replace nans with placeholder
     return int(median_index)
-
-
-# Takes black and white vector as input and returns the first frame that
-# is above a certain intensity for a certain number of pixels as defined
-# by segment
-def contiguous_above_thresh(row, threshold, min_seg_length):
-    condition = row > threshold  # Creates array of boolean values (True = above threshold)
-    # print('Row Break')  # AKA new frame
-    for start, stop in contiguous_regions(condition):  # For every
-        # print('In For Loop')
-        segment = row[start:stop]
-        # If the above threshold pixels extend across length greater than
-        # min_seg_length pixels return
-        if len(segment) > min_seg_length:
-            return stop  # If the x axis is flipped, should return stop.
-    return -1  # There were no segments longer than the minimum length with greater intensity than threshold
 
 
 # TODO: make save vertical array to text optional
