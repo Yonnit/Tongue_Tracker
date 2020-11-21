@@ -6,35 +6,66 @@ import cv2 as cv
 
 from select_tube import get_tube
 from find_tongue_position import find_tongue_xy_pos
+from find_meniscus_shape import find_meniscus_shape
 
 
 def main():
     # input_path = file_and_path()
     # zoomed_video_arr = get_tube(input_path)
-    # bg_sub_array = background_subtract(zoomed_video_arr)
+    # bg_sub_array = background_subtract(zoomed_video_arr, -1)
     #
     # np.save('./data_output/cropped_video', zoomed_video_arr)
     # np.save('./data_output/bg_sub', bg_sub_array)
 
     zoomed_video_arr = np.load('./data_output/cropped_video.npy')
     bg_sub_array = np.load('./data_output/bg_sub.npy.')
-    # print(np.shape(bg_sub_array))
-    tongue_xy_coords = find_tongue_xy_pos(bg_sub_array)
+    print(np.shape(bg_sub_array))
+    no_learning_bg_sub_array = background_subtract(zoomed_video_arr, 0)
+    meniscus_shape = find_meniscus_shape(no_learning_bg_sub_array)
+    show_meniscus_loc(meniscus_shape, zoomed_video_arr)
 
+    # tongue_xy_coords = find_tongue_xy_pos(bg_sub_array)
 
     # np.save('./data_output/mode_vertical', mode_vertical)
     # mode_vertical = np.load('./data_output/mode_vertical.npy')
     # np.savetxt('./data_output/meniscus_x_position.csv', mode_vertical[0, :, :], delimiter=',')
-    # print(np.shape(mode_vertical))
+
 
     # np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
     # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
-    dot_vid_arr = show_tongue_loc(tongue_xy_coords, zoomed_video_arr)
-    save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
+    # dot_vid_arr = show_tongue_loc(tongue_xy_coords, zoomed_video_arr)
+    # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 
     # line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False)  # , meniscus_x_pos (add to end later)
     # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
+
+
+def show_meniscus_loc(tongue_xy_coords, video_to_compare_arr):
+    color = (0, 255, 0)
+    (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
+
+    line_video_arr = []
+    frame_num = 0
+    for frame in video_to_compare_arr:
+        print(frame_num)
+
+        thickness = 1
+        radius = 1
+
+        for y_coord, x_coord in enumerate(tongue_xy_coords[frame_num]):
+            center_coordinates = x_coord, y_coord
+            frame = cv.circle(frame, center_coordinates, radius, color, thickness)
+
+        cv.imshow('frame', frame)
+        line_video_arr.append(frame)
+        key = cv.waitKey(0)  # waits 8ms between frames
+        if key == 27:  # if ESC is pressed, exit loop
+            break
+        frame_num += 1
+    cv.destroyAllWindows()
+    line_video_arr = np.asarray(line_video_arr)
+    return line_video_arr
 
 
 def show_tongue_loc(tongue_xy_coords, video_to_compare_arr):
@@ -49,8 +80,8 @@ def show_tongue_loc(tongue_xy_coords, video_to_compare_arr):
         thickness = 1
         radius = 1
 
-        for xy_coord in tongue_xy_coords[frame_num]:
-            center_coordinates = xy_coord
+        for idx, y_coord in enumerate(tongue_xy_coords[frame_num]):
+            center_coordinates = idx, y_coord
             frame = cv.circle(frame, center_coordinates, radius, color, thickness)
 
         cv.imshow('frame', frame)
@@ -102,20 +133,20 @@ def show_position(estimated_position, video_to_compare_arr, is_color, *args):
     return line_video_arr
 
 
-
-
 # TODO: allow user to set --algo to switch between MOG2 and KNN
 # Applies opencv's background subtract method to the inputted video
 # and returns that video as an array of frames that contain frame data.
 # The input must be an array of frames starting from 0
-def background_subtract(input_video_arr):
+# learning_rate = -1 means learning rate is set algorithmically,
+# learning_rate = 0 means background model is never updated.
+def background_subtract(input_video_arr, learning_rate=-1):
     # total_frame_count = len(input_video_arr)
     # print(f'Total number of frames: {total_frame_count}')
     print('Starting Background Subtract')
     back_sub = cv.createBackgroundSubtractorMOG2(varThreshold=30, detectShadows=False)
     bg_subbed_vid_arr = []
     for frame in input_video_arr:
-        foreground_mask = back_sub.apply(frame)  # try: back_sub.apply(frame, learningRate=0)
+        foreground_mask = back_sub.apply(frame, learningRate=learning_rate)
         bg_subbed_vid_arr.append(foreground_mask)
 
     bg_subbed_vid_arr = np.asarray(bg_subbed_vid_arr)
