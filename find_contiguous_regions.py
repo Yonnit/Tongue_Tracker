@@ -1,6 +1,37 @@
 import numpy as np
 
 
+def largest_contiguous_region(row, threshold):
+    condition = row > threshold
+    a = []
+    for start, stop in contiguous_regions(condition):
+        segment = row[start:stop]
+        a.append(len(segment), start, stop)
+    a = np.asarray(a)
+    print('WORK IN PROGRESS')
+    # Have to find shape of asarray array so I can find argmax of that dimension, then return the start stop
+    # as a tuple
+    # np.argmax(a,)
+
+
+
+
+# Takes black and white vector as input and returns the first frame that
+# is above a certain intensity for a certain number of pixels as defined
+# by segment
+def contiguous_above_thresh(row, threshold, min_seg_length):
+    condition = row > threshold  # Creates array of boolean values (True = above threshold)
+    # print('Row Break')  # AKA new frame
+    for start, stop in contiguous_regions(condition):  # For every
+        # print('In For Loop')
+        segment = row[start:stop]
+        # If the above threshold pixels extend across length greater than
+        # min_seg_length pixels return
+        if len(segment) > min_seg_length:
+            return stop
+    return -1  # There were no segments longer than the minimum length with greater intensity than threshold
+
+
 # Finds contiguous True regions of the boolean array "condition". Returns
 # a 2D array where the first column is the start index of the region and the
 # second column is the end index.
