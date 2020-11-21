@@ -7,6 +7,7 @@ import cv2 as cv
 from select_tube import get_tube
 from find_tongue_position import find_tongue_xy_pos
 from find_meniscus_shape import find_meniscus_shape
+# from data_analysis import tongue_submersion
 
 
 def main():
@@ -23,9 +24,9 @@ def main():
 
     no_learning_bg_sub_array = background_subtract(zoomed_video_arr, 0)
     meniscus_shape = find_meniscus_shape(no_learning_bg_sub_array)
-    show_meniscus_loc(meniscus_shape, zoomed_video_arr)
-
-    # tongue_xy_coords = find_tongue_xy_pos(bg_sub_array)
+    tongue_xy_coords = find_tongue_xy_pos(bg_sub_array)
+    # tongue_submersion(tongue_xy_coords, meniscus_shape)
+    show_both_loc(tongue_xy_coords, zoomed_video_arr, meniscus_shape)
 
     # np.save('./data_output/mode_vertical', mode_vertical)
     # mode_vertical = np.load('./data_output/mode_vertical.npy')
@@ -42,19 +43,24 @@ def main():
     # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
 
 
-def show_meniscus_loc(tongue_xy_coords, video_to_compare_arr):
-    color = (0, 255, 0)
+def show_both_loc(tongue_xy_coords, video_to_compare_arr, meniscus_xy_coords):
     (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
 
     line_video_arr = []
     frame_num = 0
     for frame in video_to_compare_arr:
-        print(frame_num)
+        # print(frame_num)
 
         thickness = 1
         radius = 1
 
-        for y_coord, x_coord in enumerate(tongue_xy_coords[frame_num]):
+        for idx, y_coord in enumerate(tongue_xy_coords[frame_num]):
+            color = (0, 255, 0)
+            center_coordinates = idx, y_coord
+            frame = cv.circle(frame, center_coordinates, radius, color, thickness)
+
+        for y_coord, x_coord in enumerate(meniscus_xy_coords[frame_num]):
+            color = (255, 0, 0)
             center_coordinates = x_coord, y_coord
             frame = cv.circle(frame, center_coordinates, radius, color, thickness)
 
