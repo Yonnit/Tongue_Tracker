@@ -46,7 +46,9 @@ def find_median_y_position(bg_sub_arr):
 def find_median_index(one_dimension_array):
     indices = np.nonzero(one_dimension_array)
     median_index = np.median(indices)
-    return median_index
+    if np.isnan(median_index):
+        median_index = -2147483648  # replace nans with placeholder
+    return int(median_index)
 
 
 # Takes black and white vector as input and returns the first frame that

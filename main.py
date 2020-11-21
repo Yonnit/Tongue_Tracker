@@ -30,14 +30,14 @@ def main():
     # np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
     # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
-    # dot_vid_arr = show_tongue_loc(tongue_x_pos, tongue_y_pos, zoomed_video_arr)
-    # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
+    dot_vid_arr = show_tongue_loc(tongue_xy_coords, zoomed_video_arr)
+    save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 
     # line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False)  # , meniscus_x_pos (add to end later)
     # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
 
 
-def show_tongue_loc(tongue_x_pos, tongue_y_pos, video_to_compare_arr):
+def show_tongue_loc(tongue_xy_coords, video_to_compare_arr):
     color = (0, 255, 0)
     (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
 
@@ -49,14 +49,13 @@ def show_tongue_loc(tongue_x_pos, tongue_y_pos, video_to_compare_arr):
         thickness = 1
         radius = 1
 
-        x_val = np.arange(tongue_x_pos[frame_num])  # might have to do tongue_x_pos[frame_num] + 1 if values are cut off
-        for x in x_val:
-            center_coordinates = x, tongue_y_pos[frame_num, x]
+        for xy_coord in tongue_xy_coords[frame_num]:
+            center_coordinates = xy_coord
             frame = cv.circle(frame, center_coordinates, radius, color, thickness)
 
         cv.imshow('frame', frame)
         line_video_arr.append(frame)
-        key = cv.waitKey(50)  # waits 8ms between frames
+        key = cv.waitKey(8)  # waits 8ms between frames
         if key == 27:  # if ESC is pressed, exit loop
             break
         frame_num += 1
