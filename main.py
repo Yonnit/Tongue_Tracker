@@ -7,7 +7,7 @@ import cv2 as cv
 from select_tube import get_tube
 from find_tongue_position import find_tongue_xy_pos
 from find_meniscus_shape import find_meniscus_shape
-# from data_analysis import tongue_submersion
+from data_analysis import polynomial_regression
 
 
 def main():
@@ -26,7 +26,8 @@ def main():
     meniscus_shape = find_meniscus_shape(no_learning_bg_sub_array)
     tongue_xy_coords = find_tongue_xy_pos(bg_sub_array)
     # tongue_submersion(tongue_xy_coords, meniscus_shape)
-    show_both_loc(tongue_xy_coords, zoomed_video_arr, meniscus_shape)
+    dot_vid_arr = show_both_loc(tongue_xy_coords, zoomed_video_arr, meniscus_shape)
+    # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 
     # np.save('./data_output/mode_vertical', mode_vertical)
     # mode_vertical = np.load('./data_output/mode_vertical.npy')
