@@ -35,7 +35,6 @@ def main():
     # line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False)  # , meniscus_x_pos (add to end later)
     # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
 
-    # view_video(no_learning_bg_sub_array, False)
 
 
 def view_video(video_arr, is_color):
@@ -172,7 +171,7 @@ def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
     if algo == 'KNN':
         back_sub = cv.createBackgroundSubtractorKNN(detectShadows=False)
     else:
-        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=40)
+        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=40)  # Raise threshold & history?
     bg_subbed_vid_arr = []
     for frame in input_video_arr:
         foreground_mask = back_sub.apply(frame, learningRate=learning_rate)
@@ -220,6 +219,26 @@ if __name__ == '__main__':
 
 ########################################################################################
 # Maybe stuff:
+
+
+    for frame in zoomed_video_arr:
+        edges = cv.Canny(frame, 200, 250)
+        # linesP = cv.HoughLinesP(edges, 1, np.pi / 180, 50, None, 50, 10)
+        # if linesP is not None:
+        #     for i in range(0, len(linesP)):
+        #         l = linesP[i][0]
+        #         cv.line(edges, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
+        cv.imshow('frame', edges)
+
+        # imgray = cv.cvtColor(im, cv.COLOR_BGR2GRAY)
+        # ret, thresh = cv.threshold(imgray, 127, 255, 0)
+        # im2, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+
+        key = cv.waitKey(16)  # waits 8ms between frames
+        if key == 27:  # if ESC is pressed, exit loop
+            break
+    # view_video(mog_bg_sub, False)
+
 
 # mode_vertical = mode_vert_bands(bg_sub_array)
 # meniscus_x_pos = find_meniscus_pos(mode_vertical[0, :, :])
