@@ -7,41 +7,57 @@ import cv2 as cv
 from select_tube import get_tube
 from find_tongue_position import find_tongue_xy_pos
 from find_meniscus_shape import find_meniscus_shape
-from data_analysis import tongue_length
+from data_analysis import analyse_data
 
 
 def main():
+    zoomed_video_arr = np.load('./data_output/cropped_video.npy')
+    # bg_sub_array = np.load('./data_output/bg_sub.npy.')
+    # print(np.shape(bg_sub_array))
+
     # input_path = file_and_path()
     # zoomed_video_arr = get_tube(input_path)
-    # bg_sub_array = background_subtract(zoomed_video_arr)
-    #
+    bg_sub_array = background_subtract(zoomed_video_arr)
     # np.save('./data_output/cropped_video', zoomed_video_arr)
     # np.save('./data_output/bg_sub', bg_sub_array)
 
-    zoomed_video_arr = np.load('./data_output/cropped_video.npy')
-    bg_sub_array = np.load('./data_output/bg_sub.npy.')
-    # print(np.shape(bg_sub_array))
+    meniscus_shape = find_meniscus_shape(bg_sub_array)
+    tongue_xy_coords, num_vert = find_tongue_xy_pos(bg_sub_array)
 
-    no_learning_bg_sub_array = background_subtract(zoomed_video_arr, 0)
-    meniscus_shape = find_meniscus_shape(no_learning_bg_sub_array)
-    tongue_xy_coords = find_tongue_xy_pos(bg_sub_array)
-    tongue_length(tongue_xy_coords)
-    dot_vid_arr = show_both_loc(tongue_xy_coords, zoomed_video_arr, meniscus_shape)
+    meniscus = analyse_data(tongue_xy_coords, meniscus_shape)
+    dot_vid_arr = show_both_loc(tongue_xy_coords, zoomed_video_arr, meniscus)
     # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
-
-    # np.save('./data_output/mode_vertical', mode_vertical)
-    # mode_vertical = np.load('./data_output/mode_vertical.npy')
-    # np.savetxt('./data_output/meniscus_x_position.csv', mode_vertical[0, :, :], delimiter=',')
-
-
-    # np.savetxt('./data_output/meniscus_x_position.csv', meniscus_x_pos, delimiter=',')
-    # np.savetxt('./data_output/tongue_x_position.csv', tongue_x_pos, delimiter=',')
 
     # dot_vid_arr = show_tongue_loc(tongue_xy_coords, zoomed_video_arr)
     # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 
     # line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False)  # , meniscus_x_pos (add to end later)
     # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
+
+    # view_video(no_learning_bg_sub_array, False)
+
+
+def view_video(video_arr, is_color):
+    if is_color:
+        color = (0, 255, 0)
+        (frame_height, frame_width, rgb_intensities) = video_arr[0].shape
+    else:
+        color = (255, 255, 255)
+        (frame_height, frame_width) = video_arr[0].shape
+
+    line_video_arr = []
+    frame_num = 0
+    for frame in video_arr:
+        # print(frame_num)
+        cv.imshow('frame', frame)
+        line_video_arr.append(frame)
+        key = cv.waitKey(50)  # waits 8ms between frames
+        if key == 27:  # if ESC is pressed, exit loop
+            break
+        frame_num += 1
+    cv.destroyAllWindows()
+    line_video_arr = np.asarray(line_video_arr)
+    return line_video_arr
 
 
 def show_both_loc(tongue_xy_coords, video_to_compare_arr, meniscus_xy_coords):
@@ -51,7 +67,6 @@ def show_both_loc(tongue_xy_coords, video_to_compare_arr, meniscus_xy_coords):
     frame_num = 0
     for frame in video_to_compare_arr:
         # print(frame_num)
-
         thickness = 1
         radius = 1
 
@@ -153,7 +168,7 @@ def background_subtract(input_video_arr, learning_rate=-1):
     # total_frame_count = len(input_video_arr)
     # print(f'Total number of frames: {total_frame_count}')
     print('Starting Background Subtract')
-    back_sub = cv.createBackgroundSubtractorMOG2(varThreshold=30, detectShadows=False)
+    back_sub = cv.createBackgroundSubtractorKNN(detectShadows=False)
     bg_subbed_vid_arr = []
     for frame in input_video_arr:
         foreground_mask = back_sub.apply(frame, learningRate=learning_rate)

@@ -18,7 +18,7 @@ def largest_contiguous_region(row, threshold):
 # is above a certain intensity for a certain number of pixels as defined
 # by segment
 def contiguous_above_thresh(row, min_seg_length, threshold=1, is_reversed=False):
-    condition = row > threshold  # Creates array of boolean values (True = above threshold)
+    condition = row >= threshold  # Creates array of boolean values (True = above threshold)
     # print('Row Break')  # AKA new frame
     if is_reversed:
         for start, stop in reversed(contiguous_regions(condition)):  # For every

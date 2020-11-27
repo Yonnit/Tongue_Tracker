@@ -5,8 +5,8 @@ from find_contiguous_regions import contiguous_above_thresh
 
 
 def find_tongue_xy_pos(bg_sub_array):
-    avg_vertical = to_vertical_bands(bg_sub_array)
-    tongue_x_max = find_tongue_x_max(avg_vertical)
+    num_vert = count_pixels_vert(bg_sub_array)
+    tongue_x_max = find_tongue_x_max(num_vert)
     median_y_position = find_median_y_position(bg_sub_array)
     # print(np.shape(median_y_position))
     # print(median_y_position[350, :])
@@ -14,7 +14,13 @@ def find_tongue_xy_pos(bg_sub_array):
     xy_coords = combine_xy_coords(tongue_x_max, median_y_position)
     # print(np.shape(xy_coords))
     # print(xy_coords[350])
-    return xy_coords
+    return xy_coords, num_vert
+
+
+# def is_licking(num_vert, x_area=10, tolerance=5):
+#     is_licking_frames = num_vert[:, :x_area] > tolerance  # Is licking when
+#     is_licking_frames = np.all(is_licking_frames, axis=1)
+#     return is_licking_frames
 
 
 # might be removed later when mensicus shape is implemented
@@ -50,21 +56,22 @@ def find_median_index(one_dimension_array):
 
 
 # TODO: make save vertical array to text optional
-# Returns the average brightness of a vertical slice of pixels
+# Returns the number of bright pixels from each vertical slice of pixels starting from x=0
 # Index represents frame starting from 0
 # Within the frame element [y,x] is the pixel location
 # ie. second frame y=240 x=600: [1][240, 600] <-- returns intensity
-def to_vertical_bands(input_array):
+def count_pixels_vert(input_array):
     # a = np.zeros(len(input_array))
-    avg_vert_array = input_array.mean(axis=1)
-    print(f'Frame count={avg_vert_array.shape[0]} Horizontal Resolution={avg_vert_array.shape[1]}')
+    # avg_vert_array = input_array.mean(axis=1)
+    count_vert_nonzero = np.count_nonzero(input_array, axis=1)
+    print(f'Frame count={count_vert_nonzero.shape[0]} Horizontal Resolution={count_vert_nonzero.shape[1]}')
     # np.savetxt('./data_output/vertical_bands_arr.csv', avg_vert_array, delimiter=',')
-    return avg_vert_array
+    return count_vert_nonzero
 
 
 # TODO: make min_seg_length and threshold changeable by user input
-def find_tongue_x_max(avg_vertical):
-    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, avg_vertical, min_seg_length=30)
+def find_tongue_x_max(num_vertical_pixels):
+    frame_by_frame = np.apply_along_axis(contiguous_above_thresh, 1, num_vertical_pixels, min_seg_length=30)
     return frame_by_frame
 
 

@@ -1,5 +1,56 @@
 import numpy as np
-from math import hypot
+from scipy.signal import find_peaks
+
+
+def analyse_data(tongue_xy, meniscus_shape):
+    maximums = tongue_max(tongue_xy)
+    minimums = meniscus_min(meniscus_shape)
+    meniscus = meniscus_pos(meniscus_shape, minimums)
+    return meniscus
+
+
+def meniscus_pos(meniscus_shape, minimums):
+    # meniscus = meniscus_shape.copy()
+    # for frame_num, shape in enumerate(meniscus_shape):
+    #     if frame_num == minimums:
+    #         meniscus[frame_num, :] = meniscus_shape[frame_num, :]
+    #     else:
+    #         meniscus[frame_num, :] = meniscus[frame_num - 1, :]
+    meniscus = np.zeros_like(meniscus_shape)
+    for frame_num in np.arange(np.shape(meniscus_shape)[0])[1:]:  # loop skips first frame
+        if frame_num in minimums:
+            meniscus[frame_num, :] = meniscus_shape[frame_num, :]
+        else:
+            meniscus[frame_num, :] = meniscus[frame_num - 1, :]
+    return meniscus
+
+
+# TODO: Make input variable for the frame rate
+# To decrease the issues, might want to base it off of meniscus shape because
+# that is using the no learning bg sub
+# min_btwn_lick has to be variable and depend on the millisecond to frame conversion
+def tongue_max(tongue_xy, min_btwn_lick=30):
+    len_arr = []
+    for x_max in tongue_xy:
+        len_arr.append(len(x_max))
+
+    len_arr = np.asarray(len_arr)
+    maximums = find_peaks(len_arr, distance=min_btwn_lick)
+    # print(maximums)
+    # print(minimums)
+    # np.savetxt('./data_output/x_max.csv', len_arr, delimiter=',')
+    return maximums
+
+
+def meniscus_min(meniscus_shape):
+    # max_x_vals = np.amax(meniscus_shape, axis=1)
+
+    n = 2  # sets how large of a number we'll get (ie n=2 means we get the second largest number)
+    nth_max = np.sort(meniscus_shape)[:, -n]
+
+    minimums = find_peaks(-nth_max, distance=20, width=5, height=(None, 1))
+    # np.savetxt('./data_output/men_max.csv', nth_max, delimiter=',')
+    return minimums[0]
 
 
 def tongue_length(tongue_xy):
@@ -24,7 +75,6 @@ def length_from_points(point_arr, start, stop):
     return total_length
 
 
-def is_licking()
 
 # def polynomial_regression(tongue_xy):
 #     line_eq = []
@@ -40,3 +90,9 @@ def is_licking()
 #     print(line_eq[351])
 #     print(line_eq[352])
 #     return line_eq
+
+
+# # n is the number of maxes to take the median of
+# def find_median_of_maxes(arr, n):
+#     idx_med = (-arr).argsort(axis=-1)[:, :n][:, 1]
+#     return arr[np.arange(len(arr)), idx_med]
