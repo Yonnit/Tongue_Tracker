@@ -46,9 +46,7 @@ def find_median_y_position(bg_sub_arr):
 def find_median_index(one_dimension_array):
     indices = np.nonzero(one_dimension_array)
     median_index = np.median(indices)
-    if np.isnan(median_index):
-        median_index = -2147483648  # replace nans with placeholder
-    return int(median_index)
+    return median_index
 
 
 # TODO: make save vertical array to text optional

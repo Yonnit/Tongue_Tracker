@@ -7,7 +7,7 @@ import cv2 as cv
 from select_tube import get_tube
 from find_tongue_position import find_tongue_xy_pos
 from find_meniscus_shape import find_meniscus_shape
-from data_analysis import polynomial_regression
+from data_analysis import tongue_length
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     no_learning_bg_sub_array = background_subtract(zoomed_video_arr, 0)
     meniscus_shape = find_meniscus_shape(no_learning_bg_sub_array)
     tongue_xy_coords = find_tongue_xy_pos(bg_sub_array)
-    # tongue_submersion(tongue_xy_coords, meniscus_shape)
+    tongue_length(tongue_xy_coords)
     dot_vid_arr = show_both_loc(tongue_xy_coords, zoomed_video_arr, meniscus_shape)
     # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 
@@ -57,7 +57,9 @@ def show_both_loc(tongue_xy_coords, video_to_compare_arr, meniscus_xy_coords):
 
         for idx, y_coord in enumerate(tongue_xy_coords[frame_num]):
             color = (0, 255, 0)
-            center_coordinates = idx, y_coord
+            if np.isnan(y_coord):
+                y_coord = -1  # replace nans with placeholder
+            center_coordinates = idx, int(y_coord)
             frame = cv.circle(frame, center_coordinates, radius, color, thickness)
 
         for y_coord, x_coord in enumerate(meniscus_xy_coords[frame_num]):
