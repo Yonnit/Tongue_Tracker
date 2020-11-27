@@ -18,10 +18,11 @@ def main():
     # input_path = file_and_path()
     # zoomed_video_arr = get_tube(input_path)
     bg_sub_array = background_subtract(zoomed_video_arr)
+    mog_bg_sub = background_subtract(zoomed_video_arr, algo='MOG2', learning_rate=0)
     # np.save('./data_output/cropped_video', zoomed_video_arr)
     # np.save('./data_output/bg_sub', bg_sub_array)
 
-    meniscus_shape = find_meniscus_shape(bg_sub_array)
+    meniscus_shape = find_meniscus_shape(mog_bg_sub)
     tongue_xy_coords, num_vert = find_tongue_xy_pos(bg_sub_array)
 
     meniscus = analyse_data(tongue_xy_coords, meniscus_shape)
@@ -164,11 +165,14 @@ def show_position(estimated_position, video_to_compare_arr, is_color, *args):
 # The input must be an array of frames starting from 0
 # learning_rate = -1 means learning rate is set algorithmically,
 # learning_rate = 0 means background model is never updated.
-def background_subtract(input_video_arr, learning_rate=-1):
+def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
     # total_frame_count = len(input_video_arr)
     # print(f'Total number of frames: {total_frame_count}')
     print('Starting Background Subtract')
-    back_sub = cv.createBackgroundSubtractorKNN(detectShadows=False)
+    if algo == 'KNN':
+        back_sub = cv.createBackgroundSubtractorKNN(detectShadows=False)
+    else:
+        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=40)
     bg_subbed_vid_arr = []
     for frame in input_video_arr:
         foreground_mask = back_sub.apply(frame, learningRate=learning_rate)

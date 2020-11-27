@@ -36,8 +36,7 @@ def tongue_max(tongue_xy, min_btwn_lick=30):
 
     len_arr = np.asarray(len_arr)
     maximums = find_peaks(len_arr, distance=min_btwn_lick)
-    # print(maximums)
-    # print(minimums)
+    print(f'number of maximums= {len(maximums[0])}')
     # np.savetxt('./data_output/x_max.csv', len_arr, delimiter=',')
     return maximums
 
@@ -49,6 +48,7 @@ def meniscus_min(meniscus_shape):
     nth_max = np.sort(meniscus_shape)[:, -n]
 
     minimums = find_peaks(-nth_max, distance=20, width=5, height=(None, 1))
+    print(f'number of minimums= {len(minimums[0])}')
     # np.savetxt('./data_output/men_max.csv', nth_max, delimiter=',')
     return minimums[0]
 
