@@ -1,4 +1,5 @@
 import numpy as np
+# from numpy.polynomial import Chebyshev as T
 from scipy.signal import find_peaks
 
 
@@ -17,7 +18,8 @@ def meniscus_pos(meniscus_shape, minimums):
     #     else:
     #         meniscus[frame_num, :] = meniscus[frame_num - 1, :]
     meniscus = np.zeros_like(meniscus_shape)
-    for frame_num in np.arange(np.shape(meniscus_shape)[0])[1:]:  # loop skips first frame
+    for frame_num in np.arange(np.shape(meniscus_shape)[0])[:]:  # previously had loop skip first frame, example: )[1:]:
+        # print(frame_num)
         if frame_num in minimums:
             meniscus[frame_num, :] = meniscus_shape[frame_num, :]
         else:

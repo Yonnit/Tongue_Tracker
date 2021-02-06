@@ -36,7 +36,6 @@ def main():
     # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
 
 
-
 def view_video(video_arr, is_color):
     if is_color:
         color = (0, 255, 0)
@@ -221,23 +220,23 @@ if __name__ == '__main__':
 # Maybe stuff:
 
 
-    for frame in zoomed_video_arr:
-        edges = cv.Canny(frame, 200, 250)
-        # linesP = cv.HoughLinesP(edges, 1, np.pi / 180, 50, None, 50, 10)
-        # if linesP is not None:
-        #     for i in range(0, len(linesP)):
-        #         l = linesP[i][0]
-        #         cv.line(edges, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
-        cv.imshow('frame', edges)
-
-        # imgray = cv.cvtColor(im, cv.COLOR_BGR2GRAY)
-        # ret, thresh = cv.threshold(imgray, 127, 255, 0)
-        # im2, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-
-        key = cv.waitKey(16)  # waits 8ms between frames
-        if key == 27:  # if ESC is pressed, exit loop
-            break
-    # view_video(mog_bg_sub, False)
+# for frame in zoomed_video_arr:
+#     edges = cv.Canny(frame, 200, 250)
+#     # linesP = cv.HoughLinesP(edges, 1, np.pi / 180, 50, None, 50, 10)
+#     # if linesP is not None:
+#     #     for i in range(0, len(linesP)):
+#     #         l = linesP[i][0]
+#     #         cv.line(edges, (l[0], l[1]), (l[2], l[3]), (0, 0, 255), 3, cv.LINE_AA)
+#     cv.imshow('frame', edges)
+#
+#     # imgray = cv.cvtColor(im, cv.COLOR_BGR2GRAY)
+#     # ret, thresh = cv.threshold(imgray, 127, 255, 0)
+#     # im2, contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+#
+#     key = cv.waitKey(16)  # waits 8ms between frames
+#     if key == 27:  # if ESC is pressed, exit loop
+#         break
+# view_video(mog_bg_sub, False)
 
 
 # mode_vertical = mode_vert_bands(bg_sub_array)
