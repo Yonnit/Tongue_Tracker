@@ -6,7 +6,7 @@ import cv2 as cv
 
 from select_tube import get_tube
 from find_tongue_position import find_tongue_xy_pos
-from find_meniscus_shape import find_meniscus_shape
+from find_meniscus_points import find_meniscus_points
 from data_analysis import analyse_data
 
 
@@ -22,10 +22,10 @@ def main():
     # np.save('./data_output/cropped_video', zoomed_video_arr)
     # np.save('./data_output/bg_sub', bg_sub_array)
 
-    meniscus_shape = find_meniscus_shape(mog_bg_sub)
+    meniscus_points = find_meniscus_points(mog_bg_sub)
     tongue_xy_coords, num_vert = find_tongue_xy_pos(bg_sub_array)
 
-    meniscus = analyse_data(tongue_xy_coords, meniscus_shape)
+    meniscus = analyse_data(tongue_xy_coords, meniscus_points)
     dot_vid_arr = show_both_loc(tongue_xy_coords, zoomed_video_arr, meniscus)
     # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 

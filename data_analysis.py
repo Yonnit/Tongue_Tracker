@@ -3,25 +3,26 @@ import numpy as np
 from scipy.signal import find_peaks
 
 
-def analyse_data(tongue_xy, meniscus_shape):
+def analyse_data(tongue_xy, meniscus_points):
     maximums = tongue_max(tongue_xy)
-    minimums = meniscus_min(meniscus_shape)
-    meniscus = meniscus_pos(meniscus_shape, minimums)
+    minimums = meniscus_min(meniscus_points)
+    meniscus = meniscus_pos(meniscus_points, minimums)
+    # np.save('./data_output/meniscus_df', meniscus)
     return meniscus
 
 
-def meniscus_pos(meniscus_shape, minimums):
-    # meniscus = meniscus_shape.copy()
-    # for frame_num, shape in enumerate(meniscus_shape):
+def meniscus_pos(meniscus_points, minimums):
+    # meniscus = meniscus_points.copy()
+    # for frame_num, shape in enumerate(meniscus_points):
     #     if frame_num == minimums:
-    #         meniscus[frame_num, :] = meniscus_shape[frame_num, :]
+    #         meniscus[frame_num, :] = meniscus_points[frame_num, :]
     #     else:
     #         meniscus[frame_num, :] = meniscus[frame_num - 1, :]
-    meniscus = np.zeros_like(meniscus_shape)
-    for frame_num in np.arange(np.shape(meniscus_shape)[0])[:]:  # previously had loop skip first frame, example: )[1:]:
+    meniscus = np.zeros_like(meniscus_points)
+    for frame_num in np.arange(np.shape(meniscus_points)[0])[:]:  # previously had loop skip first frame, example: )[1:]:
         # print(frame_num)
         if frame_num in minimums:
-            meniscus[frame_num, :] = meniscus_shape[frame_num, :]
+            meniscus[frame_num, :] = meniscus_points[frame_num, :]
         else:
             meniscus[frame_num, :] = meniscus[frame_num - 1, :]
     return meniscus
@@ -44,7 +45,7 @@ def tongue_max(tongue_xy, min_btwn_lick=30):
 
 
 def meniscus_min(meniscus_shape):
-    # max_x_vals = np.amax(meniscus_shape, axis=1)
+    # max_x_vals = np.amax(meniscus_points, axis=1)
 
     n = 2  # sets how large of a number we'll get (ie n=2 means we get the second largest number)
     nth_max = np.sort(meniscus_shape)[:, -n]
