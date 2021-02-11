@@ -8,7 +8,7 @@ def main():
     meniscus_points = np.load('./data_output/meniscus_df.npy')
 
     y = np.arange(len(meniscus_points[0]))
-    x = meniscus_points[200]
+    x = meniscus_points[500]
     mask = x > 0  # creates mask that excludes the placeholder negative ints
 
     t_train = y[mask]

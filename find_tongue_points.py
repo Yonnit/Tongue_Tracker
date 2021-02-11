@@ -4,7 +4,7 @@ import numpy as np
 from find_contiguous_regions import contiguous_above_thresh
 
 
-def find_tongue_xy_pos(bg_sub_array):
+def find_tongue_points(bg_sub_array):
     num_vert = count_pixels_vert(bg_sub_array)
     tongue_x_max = find_tongue_x_max(num_vert)
     median_y_position = find_median_y_position(bg_sub_array)

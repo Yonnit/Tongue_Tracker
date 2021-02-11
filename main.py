@@ -5,7 +5,7 @@ import cv2 as cv
 # import scipy.stats as stats
 
 from select_tube import get_tube
-from find_tongue_position import find_tongue_xy_pos
+from find_tongue_points import find_tongue_points
 from find_meniscus_points import find_meniscus_points
 from data_analysis import analyse_data
 
@@ -23,13 +23,13 @@ def main():
     # np.save('./data_output/bg_sub', bg_sub_array)
 
     meniscus_points = find_meniscus_points(mog_bg_sub)
-    tongue_xy_coords, num_vert = find_tongue_xy_pos(bg_sub_array)
+    tongue_points, num_vert = find_tongue_points(bg_sub_array)
 
-    meniscus = analyse_data(tongue_xy_coords, meniscus_points)
-    dot_vid_arr = show_both_loc(tongue_xy_coords, zoomed_video_arr, meniscus)
+    meniscus = analyse_data(tongue_points, meniscus_points)
+    dot_vid_arr = show_both_loc(tongue_points, zoomed_video_arr, meniscus)
     # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 
-    # dot_vid_arr = show_tongue_loc(tongue_xy_coords, zoomed_video_arr)
+    # dot_vid_arr = show_tongue_loc(tongue_points, zoomed_video_arr)
     # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 
     # line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False)  # , meniscus_x_pos (add to end later)
