@@ -3,12 +3,21 @@ import numpy as np
 from scipy.signal import find_peaks
 
 
-def analyse_data(tongue_xy, meniscus_points):
-    maximums = tongue_max(tongue_xy)
+def analyse_meniscus(meniscus_points):
     minimums = meniscus_min(meniscus_points)
     meniscus = meniscus_pos(meniscus_points, minimums)
     # np.save('./data_output/meniscus_df', meniscus)
     return meniscus
+
+
+def analyse_tongue(tongue_points):
+    maximums = tongue_max(tongue_points)
+
+
+def find_meniscus_equation(meniscus):
+
+    # go through unique meniscus coords
+    # replace unique with line equation
 
 
 def meniscus_pos(meniscus_points, minimums):
