@@ -7,7 +7,7 @@ import cv2 as cv
 from select_tube import get_tube
 from find_tongue_points import find_tongue_points
 from find_x_maxes import find_x_maxes
-from data_analysis import analyse_meniscus, analyse_tongue
+from data_analysis import analyse_point_data
 
 
 def main():
@@ -24,8 +24,8 @@ def main():
 
     x_maxes = find_x_maxes(mog_bg_sub)
     tongue_points, num_vert = find_tongue_points(bg_sub_array)
+    meniscus = analyse_point_data(x_maxes, tongue_points)
 
-    meniscus = analyse_meniscus(tongue_points, x_maxes)
     dot_vid_arr = show_both_loc(tongue_points, zoomed_video_arr, meniscus)
     # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 

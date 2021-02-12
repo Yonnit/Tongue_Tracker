@@ -1,35 +1,42 @@
 import numpy as np
-# from numpy.polynomial import Chebyshev as T
 from scipy.signal import find_peaks
+from robust_regression import parabola_fit
 
 
-def analyse_meniscus(meniscus_points):
-    minimums = meniscus_min(meniscus_points)
-    meniscus = meniscus_pos(meniscus_points, minimums)
-    # np.save('./data_output/meniscus_df', meniscus)
-    return meniscus
+def analyse_point_data(x_maxes, tongue_points):
+    minimums = meniscus_min(x_maxes)
+    meniscus_points = meniscus_pos(x_maxes, minimums)
+    meniscus_equations = find_meniscus_equations(meniscus_points)
+
+    # maximums = tongue_max(tongue_points)
+    # remove_meniscus(meniscus_points, meniscus_peak)
+    # find_tongue_equations(tongue_points)
+
+    return meniscus_points
 
 
-def analyse_tongue(tongue_points):
-    maximums = tongue_max(tongue_points)
+# # Returns an array with the meniscus points and all the
+# # points behind it removed.
+# def remove_meniscus(meniscus_points, meniscus_peak):
+#     unique_points, indices = np.unique(meniscus_points, axis=0, return_inverse=True)
+#     unique_maxes = np.sort(meniscus_points)[:, -2]
+#     print(unique_maxes[indices])
 
 
-def find_meniscus_equation(meniscus):
+# def find_tongue_equations(tongue_points):
+#     for frame in tongue_points:
+#         parabola_fit(frame)
 
-    # go through unique meniscus coords
-    # replace unique with line equation
+
+def find_meniscus_equations(meniscus_points):
+    unique_points, indices = np.unique(meniscus_points, axis=0, return_inverse=True)
+    unique_equations = np.apply_along_axis(parabola_fit, 1, unique_points)
+    return unique_equations[indices]
 
 
 def meniscus_pos(meniscus_points, minimums):
-    # meniscus = meniscus_points.copy()
-    # for frame_num, shape in enumerate(meniscus_points):
-    #     if frame_num == minimums:
-    #         meniscus[frame_num, :] = meniscus_points[frame_num, :]
-    #     else:
-    #         meniscus[frame_num, :] = meniscus[frame_num - 1, :]
     meniscus = np.zeros_like(meniscus_points)
-    for frame_num in np.arange(np.shape(meniscus_points)[0])[:]:  # previously had loop skip first frame, example: )[1:]:
-        # print(frame_num)
+    for frame_num in np.arange(np.shape(meniscus_points)[0])[1:]:  # skips first frame (to avoid errors)
         if frame_num in minimums:
             meniscus[frame_num, :] = meniscus_points[frame_num, :]
         else:
@@ -53,16 +60,16 @@ def tongue_max(tongue_xy, min_btwn_lick=30):
     return maximums
 
 
-def meniscus_min(meniscus_shape):
+def meniscus_min(meniscus_points):
     # max_x_vals = np.amax(meniscus_points, axis=1)
 
     n = 2  # sets how large of a number we'll get (ie n=2 means we get the second largest number)
-    nth_max = np.sort(meniscus_shape)[:, -n]
+    nth_max = np.sort(meniscus_points)[:, -n]
 
-    minimums = find_peaks(-nth_max, distance=20, width=5, height=(None, 1))
-    print(f'number of minimums= {len(minimums[0])}')
+    minimums, properties = find_peaks(-nth_max, distance=20, width=5, height=(None, 1))
+    print(f'number of minimums= {len(minimums)}')
     # np.savetxt('./data_output/men_max.csv', nth_max, delimiter=',')
-    return minimums[0]
+    return minimums
 
 
 def tongue_length(tongue_xy):
@@ -85,26 +92,3 @@ def length_from_points(point_arr, start, stop):
         dist_adjacent = np.linalg.norm(point1 - point2)
         total_length += dist_adjacent
     return total_length
-
-
-
-# def polynomial_regression(tongue_xy):
-#     line_eq = []
-#     for frame in tongue_xy:
-#         if len(frame) > 0:
-#             coefficients = np.polyfit(range(len(frame)), frame, 2)
-#             function = np.poly1d(coefficients)
-#             line_eq.append(function)
-#         else:
-#             line_eq.append(0)
-#     print(np.shape(line_eq))
-#     print(line_eq[350])
-#     print(line_eq[351])
-#     print(line_eq[352])
-#     return line_eq
-
-
-# # n is the number of maxes to take the median of
-# def find_median_of_maxes(arr, n):
-#     idx_med = (-arr).argsort(axis=-1)[:, :n][:, 1]
-#     return arr[np.arange(len(arr)), idx_med]
