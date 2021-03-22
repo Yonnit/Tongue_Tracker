@@ -6,6 +6,7 @@ from scipy.optimize import least_squares
 # Returns coefficients
 def parabola_fit(y):
     y = np.asarray(y)
+    # y = np.nan_to_num(y, nan=-1)
     x = np.arange(len(y))
     mask = x > -1
 

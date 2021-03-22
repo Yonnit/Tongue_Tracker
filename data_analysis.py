@@ -6,7 +6,9 @@ from robust_regression import parabola_fit
 def analyse_point_data(x_maxes, tongue_points):
     minimums = meniscus_min(x_maxes)
     meniscus_points = meniscus_pos(x_maxes, minimums)
-    meniscus_equations = find_meniscus_equations(meniscus_points)
+    # meniscus_equations = find_meniscus_equations(meniscus_points)
+    # clean_tongue_points
+    tongue_line_equations = find_tongue_equations(tongue_points)
 
     # maximums = tongue_max(tongue_points)
     # remove_meniscus(meniscus_points, meniscus_peak)
@@ -26,6 +28,14 @@ def analyse_point_data(x_maxes, tongue_points):
 # def find_tongue_equations(tongue_points):
 #     for frame in tongue_points:
 #         parabola_fit(frame)
+
+
+def find_tongue_equations(tongue_points):
+    equation = []
+    for frame in tongue_points:
+        equation.append(parabola_fit(frame))
+    print(equation)
+    return(equation)
 
 
 def find_meniscus_equations(meniscus_points):
