@@ -1,56 +1,74 @@
 import numpy as np
+from scipy import optimize
 import matplotlib.pyplot as plt
-# from numpy.polynomial import Chebyshev as T
-from scipy.optimize import least_squares
+import cv2 as cv
 
+
+# https://gist.github.com/ruoyu0088/70effade57483355bbd18b31dc370f2a
 
 def main():
-    meniscus_points = np.load('./data_output/meniscus_df.npy')
+    points = np.load('./data_output/mog_bg_sub.npy')
+    # points = np.load('./data_output/tongue_points.npy', allow_pickle=True)
+    points = points[447]
+    cv.imshow('frame', points)
+    points = np.asarray(points)
+    print(np.shape(points))
 
-    y = np.arange(len(meniscus_points[0]))
-    x = meniscus_points[500]
-    mask = x > 0  # creates mask that excludes the placeholder negative ints
+    points[:, :70] = 0  # setting lower bounds
+    points[:, 166:] = 0  # setting upper bounds
+    cv.imshow('frame2', points)
+    y, x = points.nonzero()
 
-    t_train = y[mask]
-    y_train = x[mask]
-    x0 = np.array([1.0, 1.0, 0.0])
-    res_lsq = least_squares(fun, x0, args=(t_train, y_train))
-    res_soft_l1 = least_squares(fun, x0, loss='soft_l1', f_scale=0.1,
-                                args=(t_train, y_train))
-    # res_log = least_squares(fun, x0, loss='cauchy', f_scale=0.1,
-    #                         args=(t_train, y_train))
+    # x = np.arange(len(points))
+    # y = points
+    # x = x[40:]
+    # y = points[40:]
+    # print(y)
 
-    t_test = np.linspace(0, 76, 77*10)  # HARDCODED IN!
-    y_lsq = gen_data(t_test, *res_lsq.x)
-    y_soft_l1 = gen_data(t_test, *res_soft_l1.x)
-    # y_log = gen_data(t_test, *res_log.x)
+    px, py = segments_fit(x, y)
+    print('x: ', px)
+    print('y: ', py)
 
-    plt.plot(t_train, y_train, 'o')
-    plt.plot(t_test, y_lsq, label='linear loss')
-    plt.plot(t_test, y_soft_l1, label='soft_l1 loss')
-    # plt.plot(t_test, y_log, label='cauchy loss')
-    plt.xlabel("t")
-    plt.ylabel("y")
-
-    # p = T.fit(y[mask], x[mask], 2)
-    # # plt.plot(y[mask], x[mask], 'o')
-    # xx, yy = p.linspace()
-    # plt.plot(xx, yy, lw=2, label='default')
-    plt.legend()
+    plt.plot(x, y, 'o')
+    plt.plot(px, py, 'or-')
     plt.show()
-    # for y_coord, x_coord in enumerate(meniscus_points[100]):
-    #     center_coordinates = x_coord, y_coord
-    #     print(center_coordinates)
 
 
-def gen_data(t, a, b, c,):
-    # return a + b * np.exp(t * c)
-    return a * t ** 2 + b * t + c
+def intercepts(x1, x2, y1, y2):
+    m = (y1 - y2) / (x1 - x2)
+    b = -x1 * slope + y1
 
 
-def fun(x, t, y):
-    # return x[0] + x[1] * np.exp(x[2] * t) - y
-    return x[0] * t ** 2 + x[1] * t + x[2] - y
+
+    # x = ((-B + m + - Sqrt[4 A b + B ^ 2 - 4 A C - 2 B m + m ^ 2]) / (2 A))
+
+
+
+def segments_fit(X, Y, count=2):
+    xmin = X.min()
+    xmax = X.max()
+
+    seg = np.full(count - 1, (xmax - xmin) / count)
+
+    px_init = np.r_[np.r_[xmin, seg].cumsum(), xmax]
+    py_init = np.array([Y[np.abs(X - x) < (xmax - xmin) * 0.01].mean() for x in px_init])
+
+    def func(p):
+        seg = p[:count - 1]
+        py = p[count - 1:]
+        px = np.r_[np.r_[xmin, seg].cumsum(), xmax]
+        return px, py
+
+    def err(p):
+        px, py = func(p)
+        Y2 = np.interp(X, px, py)
+        return np.mean((Y - Y2) ** 2)
+
+    r = optimize.minimize(err, x0=np.r_[seg, py_init], method='Nelder-Mead')
+    return func(r.x)
+
+
+
 
 
 if __name__ == '__main__':
