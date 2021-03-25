@@ -5,9 +5,9 @@ import cv2 as cv
 # import scipy.stats as stats
 
 from select_tube import get_tube
-from find_tongue_points import find_tongue_points
-from find_x_maxes import find_x_maxes
-from data_analysis import analyse_point_data
+# from find_tongue_points import find_tongue_points
+from clean_video import clean_bg_sub
+from data_analysis import analyse_video
 
 
 def main():
@@ -17,16 +17,16 @@ def main():
 
     # input_path = file_and_path()
     # zoomed_video_arr = get_tube(input_path)
-    bg_sub_array = background_subtract(zoomed_video_arr)
+    # bg_sub_array = background_subtract(zoomed_video_arr)
     mog_bg_sub = background_subtract(zoomed_video_arr, algo='MOG2', learning_rate=0)
     # np.save('./data_output/cropped_video', zoomed_video_arr)
     # np.save('./data_output/bg_sub', bg_sub_array)
 
-    x_maxes = find_x_maxes(mog_bg_sub)
-    tongue_points, num_vert = find_tongue_points(bg_sub_array)
-    meniscus = analyse_point_data(x_maxes, tongue_points)
+    cleaned_bg_sub = clean_bg_sub(mog_bg_sub)
 
-    dot_vid_arr = show_both_loc(tongue_points, zoomed_video_arr, meniscus)
+    analyse_video(cleaned_bg_sub)
+
+    # dot_vid_arr = show_both_loc(tongue_points, zoomed_video_arr, meniscus)
     # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
 
     # dot_vid_arr = show_tongue_loc(tongue_points, zoomed_video_arr)
