@@ -28,7 +28,6 @@ def clean_bg_sub(video_array):
     return np.asarray(cleaned)
 
 
-
 def remove_isolated_pixels(image):
     connectivity = 8
 
