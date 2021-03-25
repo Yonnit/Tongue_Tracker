@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.optimize import least_squares
+from scipy.optimize import least_squares, minimize
 
 
 # Uses a robust method of least squares regression.
@@ -40,3 +40,31 @@ def parabola_fit(y):
 def fun(x, t, y):
     # return x[0] + x[1] * np.exp(x[2] * t) - y
     return x[0] * t ** 2 + x[1] * t + x[2] - y
+
+
+# Returns two separate x and y variables containing the coordinates
+# required for the piecewise linear regression lines. Takes
+# an array/list of X and Y coordinates as inputs.
+# The number of lines (count) default is 2.
+def segments_fit(X, Y, count=2):
+    xmin = X.min()
+    xmax = X.max()
+
+    seg = np.full(count - 1, (xmax - xmin) / count)
+
+    px_init = np.r_[np.r_[xmin, seg].cumsum(), xmax]
+    py_init = np.array([Y[np.abs(X - x) < (xmax - xmin) * 0.01].mean() for x in px_init])
+
+    def func(p):
+        seg = p[:count - 1]
+        py = p[count - 1:]
+        px = np.r_[np.r_[xmin, seg].cumsum(), xmax]
+        return px, py
+
+    def err(p):
+        px, py = func(p)
+        Y2 = np.interp(X, px, py)
+        return np.mean((Y - Y2) ** 2)
+
+    r = minimize(err, x0=np.r_[seg, py_init], method='Nelder-Mead')
+    return func(r.x)
