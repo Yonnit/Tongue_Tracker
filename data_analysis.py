@@ -1,36 +1,19 @@
 import numpy as np
 from scipy.signal import find_peaks
-from robust_regression import parabola_fit
+
+from regression import parabola_fit
+from tongue_functions import find_tongue_end, find_tongue_equations
+from find_x_maxes import find_x_maxes
 
 
-def analyse_point_data(x_maxes, tongue_points):
+def analyse_video(cleaned_bg_sub):
+    x_maxes = find_x_maxes(cleaned_bg_sub)
     minimums = meniscus_min(x_maxes)
     meniscus_points = meniscus_pos(x_maxes, minimums)
-    # meniscus_equations = find_meniscus_equations(meniscus_points)
+    meniscus_equations = find_meniscus_equations(meniscus_points)
 
-    # tongue_line_equations = find_tongue_equations(tongue_points)
-
-    # maximums = tongue_max(tongue_points)
-    # remove_meniscus(meniscus_points, meniscus_peak)
-    # find_tongue_equations(tongue_points)
-
-    return meniscus_points
-
-
-# # Returns an array with the meniscus points and all the
-# # points behind it removed.
-# def remove_meniscus(meniscus_points, meniscus_peak):
-#     unique_points, indices = np.unique(meniscus_points, axis=0, return_inverse=True)
-#     unique_maxes = np.sort(meniscus_points)[:, -2]
-#     print(unique_maxes[indices])
-
-
-# def find_tongue_equations(tongue_points):
-#     equation = []
-#     for frame in tongue_points:
-#         equation.append(parabola_fit(frame))
-#     print(equation)
-#     return equation
+    tongue_maxes = find_tongue_end(cleaned_bg_sub)
+    tongue_equations = find_tongue_equations(cleaned_bg_sub, meniscus_points, tongue_maxes)
 
 
 def find_meniscus_equations(meniscus_points):
@@ -84,16 +67,3 @@ def tongue_length(tongue_xy):
     print(length)
     print(np.shape(length))
     return length
-
-
-def length_from_points(point_arr, start, stop):
-    x_range = range(start, stop - 1)
-    total_length = 0
-    for x in x_range:
-        # if np.isnan(point_arr[x]) | np.isnan(point_arr[x + 1]):
-        #     dist_adjacent =
-        point1 = np.array(x, point_arr[x])
-        point2 = np.array(x + 1, point_arr[x + 1])
-        dist_adjacent = np.linalg.norm(point1 - point2)
-        total_length += dist_adjacent
-    return total_length
