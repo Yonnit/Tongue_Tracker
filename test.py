@@ -6,23 +6,26 @@ import cv2 as cv
 
 # https://gist.github.com/ruoyu0088/70effade57483355bbd18b31dc370f2a
 
-def main():
-    points = np.load('./data_output/mog_bg_sub.npy')
-    # points = np.load('./data_output/tongue_points.npy', allow_pickle=True)
-    points = points[447]
-    cv.imshow('frame', points)
-    points = np.asarray(points)
-    print(np.shape(points))
+def main(tongue_points, meniscus, i):
+    # tongue_points = np.load('./data_output/tongue_points.npy', allow_pickle=True)
+    print(np.arange(np.shape(tongue_points)[0]))
+    meniscus = meniscus[i]
+    meniscus_max = np.max(meniscus)
+    tongue_points = tongue_points[i]
 
-    points[:, :70] = 0  # setting lower bounds
-    points[:, 166:] = 0  # setting upper bounds
-    cv.imshow('frame2', points)
-    y, x = points.nonzero()
+    cv.imshow('frame', tongue_points)
+    tongue_points = np.asarray(tongue_points)
+    print(np.shape(tongue_points))
 
-    # x = np.arange(len(points))
-    # y = points
+    tongue_points[:, :meniscus_max + 2] = 0  # setting lower bounds (+ 2 pixels to remove artifacts due to the meniscus)
+    tongue_points[:, -1:] = 0  # setting upper bounds
+    cv.imshow('frame2', tongue_points)
+    y, x = tongue_points.nonzero()
+
+    # x = np.arange(len(tongue_points))
+    # y = tongue_points
     # x = x[40:]
-    # y = points[40:]
+    # y = tongue_points[40:]
     # print(y)
 
     px, py = segments_fit(x, y)
@@ -36,14 +39,15 @@ def main():
 
 def intercepts(x1, x2, y1, y2):
     m = (y1 - y2) / (x1 - x2)
-    b = -x1 * slope + y1
-
-
+    b = -x1 * m + y1
 
     # x = ((-B + m + - Sqrt[4 A b + B ^ 2 - 4 A C - 2 B m + m ^ 2]) / (2 A))
 
 
-
+# Returns two separate x and y variables containing the coordinates
+# required for the piecewise linear regression lines. Takes
+# an array/list of X and Y coordinates as inputs.
+# The number of lines (count) default is 2.
 def segments_fit(X, Y, count=2):
     xmin = X.min()
     xmax = X.max()
@@ -68,8 +72,9 @@ def segments_fit(X, Y, count=2):
     return func(r.x)
 
 
-
-
-
 if __name__ == '__main__':
-    main()
+    tongue_points = np.load('./data_output/mog_bg_sub.npy')
+    meniscus = np.load('./data_output/meniscus_points.npy')
+    for i in np.arange(np.size(tongue_points[0])):
+        main(tongue_points, meniscus, i)
+
