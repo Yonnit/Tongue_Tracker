@@ -4,45 +4,78 @@ import math
 import matplotlib.pyplot as plt
 import cv2 as cv
 
+import cv2
+import numpy as np
+
+
+def main():
+    class CoordinateStore:
+        def __init__(self):
+            self.points = []
+
+        def select_point(self, event, x, y, flags, param):
+            if event == cv2.EVENT_LBUTTONDBLCLK:
+                cv2.circle(img, (x, y), 3, (255, 0, 0), -1)
+                self.points.append((x, y))
+
+    # instantiate class
+    coordinateStore1 = CoordinateStore()
+
+    # Create a black image, a window and bind the function to window
+    img = np.zeros((512, 512, 3), np.uint8)
+    cv2.namedWindow('image')
+    cv2.setMouseCallback('image', coordinateStore1.select_point)
+
+    while True:
+        cv2.imshow('image', img)
+        k = cv2.waitKey(20) & 0xFF
+        if k == 27:
+            break
+    cv2.destroyAllWindows()
+
+    print("Selected Coordinates: ")
+    for i in coordinateStore1.points:
+        print(i)
+
 
 # https://gist.github.com/ruoyu0088/70effade57483355bbd18b31dc370f2a
 
-def main():
-    meniscus_eq = np.asarray([-1.76432786e-02, 1.23399985e+00, 4.36404085e+01])
-    points = np.load('./data_output/mog_bg_sub.npy')
-    meniscus = np.load('./data_output/meniscus_points.npy')
-    # points = np.load('./data_output/tongue_points.npy', allow_pickle=True)
-
-    meniscus = meniscus[447]
-    meniscus_max = np.max(meniscus)
-    points = points[447]
-
-    cv.imshow('frame', points)
-    points = np.asarray(points)
-    print(np.shape(points))
-
-    points[:, :meniscus_max + 2] = 0  # setting lower bounds (+ 2 pixels to remove artifacts due to the meniscus)
-    points[:, 163:] = 0  # setting upper bounds
-    cv.imshow('frame2', points)
-    y, x = points.nonzero()
-
-    # x = np.arange(len(points))
-    # y = points
-    # x = x[40:]
-    # y = points[40:]
-    # print(y)
-
-    px, py = segments_fit(x, y)
-    print('x: ', px)
-    print('y: ', py)
-
-    solx, soly = intercepts(px, py, meniscus_eq)
-    print(solx, soly)
-
-    plt.plot(x, y, 'o')
-    plt.plot(px, py, 'or-')
-    plt.plot([solx], [soly], 'rx')
-    plt.show()
+# def main():
+#     meniscus_eq = np.asarray([-1.76432786e-02, 1.23399985e+00, 4.36404085e+01])
+#     points = np.load('./data_output/mog_bg_sub.npy')
+#     meniscus = np.load('./data_output/meniscus_points.npy')
+#     # points = np.load('./data_output/tongue_points.npy', allow_pickle=True)
+#
+#     meniscus = meniscus[447]
+#     meniscus_max = np.max(meniscus)
+#     points = points[447]
+#
+#     cv.imshow('frame', points)
+#     points = np.asarray(points)
+#     print(np.shape(points))
+#
+#     points[:, :meniscus_max + 2] = 0  # setting lower bounds (+ 2 pixels to remove artifacts due to the meniscus)
+#     points[:, 163:] = 0  # setting upper bounds
+#     cv.imshow('frame2', points)
+#     y, x = points.nonzero()
+#
+#     # x = np.arange(len(points))
+#     # y = points
+#     # x = x[40:]
+#     # y = points[40:]
+#     # print(y)
+#
+#     px, py = segments_fit(x, y)
+#     print('x: ', px)
+#     print('y: ', py)
+#
+#     solx, soly = intercepts(px, py, meniscus_eq)
+#     print(solx, soly)
+#
+#     plt.plot(x, y, 'o')
+#     plt.plot(px, py, 'or-')
+#     plt.plot([solx], [soly], 'rx')
+#     plt.show()
 
 
 def intercepts(x, y, meniscus):
