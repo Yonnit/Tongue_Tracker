@@ -1,13 +1,15 @@
 import numpy as np
 import cv2 as cv
+from scipy.signal import find_peaks
 # import argparse
 # import sys
-# import scipy.stats as stats
 
 from select_tube import get_tube
 # from find_tongue_points import find_tongue_points
 from clean_video import clean_bg_sub
+from tongue_functions import find_tongue_end
 from data_analysis import analyse_video
+from select_meniscus import get_meniscus
 
 
 def main():
@@ -24,7 +26,14 @@ def main():
 
     cleaned_bg_sub = clean_bg_sub(mog_bg_sub)
 
-    analyse_video(cleaned_bg_sub)
+    tongue_maxes = find_tongue_end(cleaned_bg_sub)
+    tongue_max_frames = find_peaks(tongue_maxes, distance=30)  # TODO: make distance scale by camera frame rate
+    print('Number of maximums=', len(tongue_max_frames[0]))
+    selected_frames = cleaned_bg_sub[tongue_max_frames[0], :, :]
+    meniscus_coords = get_meniscus(selected_frames)
+    print(meniscus_coords)
+
+    # analyse_video(cleaned_bg_sub)
 
     # dot_vid_arr = show_both_loc(tongue_points, zoomed_video_arr, meniscus)
     # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
