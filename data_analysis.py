@@ -13,7 +13,13 @@ def analyse_video(cleaned_bg_sub):
     meniscus_equations = find_meniscus_equations(meniscus_points)
 
     tongue_maxes = find_tongue_end(cleaned_bg_sub)
-    tongue_equations = find_tongue_equations(cleaned_bg_sub, meniscus_points, tongue_maxes)
+    tongue_max_frames = find_peaks(tongue_maxes, distance=30)
+    print('num tongue maxes=', len(tongue_max_frames[0]))
+
+    # select_meniscus(cleaned_bg_sub, tongue_max_frames)
+
+    # tongue_equations = find_tongue_equations(cleaned_bg_sub, meniscus_points, tongue_maxes)
+    return tongue_max_frames
 
 
 def find_meniscus_equations(meniscus_points):

@@ -3,7 +3,7 @@ import numpy as np
 from find_contiguous_regions import contiguous_above_thresh
 
 
-# Returns the maximum x-values for each row of the background subbed array
+# Returns the maximum x-values for each row of each frame of the background subbed array
 def find_x_maxes(bg_sub_array):
     pos = np.apply_along_axis(contiguous_above_thresh, 2, bg_sub_array, min_seg_length=5, is_reversed=True)
     # print(np.shape(pos))
