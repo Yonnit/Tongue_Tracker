@@ -8,14 +8,13 @@ from select_tube import get_tube
 # from find_tongue_points import find_tongue_points
 from clean_video import clean_bg_sub
 from tongue_functions import find_tongue_end
-from data_analysis import analyse_video
+from data_analysis import analyse_video, meniscus_pos
 from select_meniscus import get_meniscus
 
 
 def main():
     zoomed_video_arr = np.load('./data_output/cropped_video.npy')
     # bg_sub_array = np.load('./data_output/bg_sub.npy.')
-    # print(np.shape(bg_sub_array))
 
     # input_path = file_and_path()
     # zoomed_video_arr = get_tube(input_path)
@@ -28,10 +27,15 @@ def main():
 
     tongue_maxes = find_tongue_end(cleaned_bg_sub)
     tongue_max_frames = find_peaks(tongue_maxes, distance=30)  # TODO: make distance scale by camera frame rate
+    print(tongue_max_frames)
     print('Number of maximums=', len(tongue_max_frames[0]))
     selected_frames = cleaned_bg_sub[tongue_max_frames[0], :, :]
-    meniscus_coords = get_meniscus(selected_frames)
-    print(meniscus_coords)
+
+    # meniscus_coords = get_meniscus(selected_frames)
+    meniscus_coords = np.load('./data_output/meniscus_coords.npy')
+
+    meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames[0], np.shape(cleaned_bg_sub)[0])
+
 
     # analyse_video(cleaned_bg_sub)
 
@@ -43,6 +47,18 @@ def main():
 
     # line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False)  # , meniscus_x_pos (add to end later)
     # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
+
+
+def update_meniscus_position(meniscus_coords_arr, update_position_frame, total_frame_count):
+    meniscus = np.zeros((total_frame_count, 2))
+    frame_update_count = 0
+    for frame_num in range(total_frame_count):
+        if frame_num in update_position_frame:
+            meniscus[frame_num, :] = meniscus_coords_arr[frame_update_count, :]
+            frame_update_count += 1
+        else:
+            meniscus[frame_num, :] = meniscus[frame_num - 1, :]
+    return meniscus
 
 
 def view_video(video_arr, is_color):
