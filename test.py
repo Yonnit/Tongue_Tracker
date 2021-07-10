@@ -1,41 +1,76 @@
-import numpy as np
-from scipy import optimize
-import math
-import matplotlib.pyplot as plt
-import cv2 as cv
+# import numpy as np
+# from scipy import optimize
+# import math
+# import matplotlib.pyplot as plt
+# import cv2 as cv
+#
+# import cv2
 
-import cv2
-import numpy as np
 
 
-def main():
-    class CoordinateStore:
-        def __init__(self):
-            self.points = []
 
-        def select_point(self, event, x, y, flags, param):
-            if event == cv2.EVENT_LBUTTONDBLCLK:
-                cv2.circle(img, (x, y), 3, (255, 0, 0), -1)
-                self.points.append((x, y))
+# from __future__ import print_function
+# import numpy as np
+# import cv2 as cv
+# import argparse
+# zoomed_video_arr = np.load('./data_output/cropped_video.npy')
+# zoomed_video_arr = zoomed_video_arr[61]
+# max_lowThreshold = 100
+# window_name = 'Edge Map'
+# title_trackbar = 'Min Threshold:'
+# ratio = 3
+# kernel_size = 3
+# def CannyThreshold(val):
+#     low_threshold = val
+#     img_blur = cv.blur(src_gray, (3,3))
+#     detected_edges = cv.Canny(img_blur, low_threshold, low_threshold*ratio, kernel_size)
+#     mask = detected_edges != 0
+#     dst = src * (mask[:,:,None].astype(src.dtype))
+#     cv.imshow(window_name, dst)
+# # parser = argparse.ArgumentParser(description='Code for Canny Edge Detector tutorial.')
+# # parser.add_argument('--input', help='Path to input image.', default='fruits.jpg')
+# # args = parser.parse_args()
+# # src = cv.imread(cv.samples.findFile(args.input))
+# src = zoomed_video_arr
+# if src is None:
+#     print('Could not open or find the image: ', args.input)
+#     exit(0)
+# src_gray = cv.cvtColor(src, cv.COLOR_BGR2GRAY)
+# cv.namedWindow(window_name)
+# cv.createTrackbar(title_trackbar, window_name , 0, max_lowThreshold, CannyThreshold)
+# CannyThreshold(0)
+# cv.waitKey()
 
-    # instantiate class
-    coordinateStore1 = CoordinateStore()
 
-    # Create a black image, a window and bind the function to window
-    img = np.zeros((512, 512, 3), np.uint8)
-    cv2.namedWindow('image')
-    cv2.setMouseCallback('image', coordinateStore1.select_point)
 
-    while True:
-        cv2.imshow('image', img)
-        k = cv2.waitKey(20) & 0xFF
-        if k == 27:
-            break
-    cv2.destroyAllWindows()
-
-    print("Selected Coordinates: ")
-    for i in coordinateStore1.points:
-        print(i)
+# def main():
+#     class CoordinateStore:
+#         def __init__(self):
+#             self.points = []
+#
+#         def select_point(self, event, x, y, flags, param):
+#             if event == cv2.EVENT_LBUTTONDBLCLK:
+#                 cv2.circle(img, (x, y), 3, (255, 0, 0), -1)
+#                 self.points.append((x, y))
+#
+#     # instantiate class
+#     coordinateStore1 = CoordinateStore()
+#
+#     # Create a black image, a window and bind the function to window
+#     img = np.zeros((512, 512, 3), np.uint8)
+#     cv2.namedWindow('image')
+#     cv2.setMouseCallback('image', coordinateStore1.select_point)
+#
+#     while True:
+#         cv2.imshow('image', img)
+#         k = cv2.waitKey(20) & 0xFF
+#         if k == 27:
+#             break
+#     cv2.destroyAllWindows()
+#
+#     print("Selected Coordinates: ")
+#     for i in coordinateStore1.points:
+#         print(i)
 
 
 # https://gist.github.com/ruoyu0088/70effade57483355bbd18b31dc370f2a
@@ -43,7 +78,7 @@ def main():
 # def main():
 #     meniscus_eq = np.asarray([-1.76432786e-02, 1.23399985e+00, 4.36404085e+01])
 #     points = np.load('./data_output/mog_bg_sub.npy')
-#     meniscus = np.load('./data_output/meniscus_points.npy')
+#     meniscus = np.load('./data_output/meniscus_coords_arr.npy')
 #     # points = np.load('./data_output/tongue_points.npy', allow_pickle=True)
 #
 #     meniscus = meniscus[447]
