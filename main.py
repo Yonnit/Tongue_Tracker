@@ -5,11 +5,11 @@ from scipy.signal import find_peaks
 # import sys
 
 from select_tube import get_tube
-# from find_tongue_points import find_tongue_points
-from clean_video import clean_bg_sub
+from clean_video import clean_bg_sub, extract_tongue_pixels
 from tongue_functions import find_tongue_end
-from data_analysis import analyse_video, meniscus_pos
 from select_meniscus import get_meniscus
+from data_analysis import analyse_video, meniscus_pos
+
 
 
 def main():
@@ -27,7 +27,7 @@ def main():
 
     tongue_maxes = find_tongue_end(cleaned_bg_sub)
     tongue_max_frames = find_peaks(tongue_maxes, distance=30)  # TODO: make distance scale by camera frame rate
-    print(tongue_max_frames)
+    print(tongue_max_frames[0])
     print('Number of maximums=', len(tongue_max_frames[0]))
     selected_frames = cleaned_bg_sub[tongue_max_frames[0], :, :]
 
@@ -35,6 +35,8 @@ def main():
     meniscus_coords = np.load('./data_output/meniscus_coords.npy')
 
     meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames[0], np.shape(cleaned_bg_sub)[0])
+    tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
+    view_video(tongue_pixels, False, cleaned_bg_sub)
 
 
     # analyse_video(cleaned_bg_sub)
@@ -61,7 +63,7 @@ def update_meniscus_position(meniscus_coords_arr, update_position_frame, total_f
     return meniscus
 
 
-def view_video(video_arr, is_color):
+def view_video(video_arr, is_color, *args):
     if is_color:
         color = (0, 255, 0)
         (frame_height, frame_width, rgb_intensities) = video_arr[0].shape
@@ -73,6 +75,9 @@ def view_video(video_arr, is_color):
     frame_num = 0
     for frame in video_arr:
         # print(frame_num)
+        video_num = 0
+        for video in args:
+            cv.imshow(f'video{video_num}', video[frame_num])
         cv.imshow('frame', frame)
         line_video_arr.append(frame)
         key = cv.waitKey(50)  # waits 8ms between frames

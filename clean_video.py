@@ -46,5 +46,50 @@ def remove_isolated_pixels(image):
     return new_image
 
 
+# Takes a black and white video array, the coordinates (x, y) of where the meniscus
+# intersects with the tongue on each frame, and the tongue maxes (x) on each frame
+# to remove the meniscus and all noise to the right of the tongue max. Returns
+# a black and white numpy array.
+def extract_tongue_pixels(video_array, meniscus_arr, tongue_maxes):
+    tongue_px = []
+    video = np.copy(video_array)
+    for frame_num, frame in enumerate(video):  # frame_num starts from 0
+        frame[:, tongue_maxes[frame_num]:] = 0
+        no_meniscus = remove_45d_to_315d(frame, meniscus_arr[frame_num])
+        tongue_px.append(no_meniscus)
+    print(tongue_maxes[0])
+    print(tongue_maxes[1])
+    tongue_px[frame_num]
+    return tongue_px
+
+
+# Example:
+# Pre, Inputted Array:
+# [[255 255 255 255 255]
+#  [255 255 255 255 255]
+#  [255 255 255 255 255]
+#  [255 255 255 255 255]
+#  [255 255 255 255 255]]
+# Post, where point = (2, 2)
+# [[  0   0   0   0 255]
+#  [  0   0   0 255 255]
+#  [  0   0 255 255 255]
+#  [  0   0   0 255 255]
+#  [  0   0   0   0 255]]
+# Takes an inputted 2d array and a point (x, y) and returns the array with
+# all values from 45 degrees - 315 degrees and sets them to 0 as shown above.
+def remove_45d_to_315d(input_arr, point):
+    a = input_arr
+    point = np.asarray(point)
+    x = point[0]
+    y = point[1]
+    y_dim, x_dim = np.shape(a)
+    a = np.triu(a, x - y)
+    a = np.flipud(a)
+    a = np.triu(a, -1 * (y_dim - 1 - y - x))
+    a = np.flipud(a)
+    return a
+
+
 if __name__ == '__main__':
     main()
