@@ -57,9 +57,10 @@ def extract_tongue_pixels(video_array, meniscus_arr, tongue_maxes):
         frame[:, tongue_maxes[frame_num]:] = 0
         no_meniscus = remove_45d_to_315d(frame, meniscus_arr[frame_num])
         tongue_px.append(no_meniscus)
-    print(tongue_maxes[0])
-    print(tongue_maxes[1])
-    tongue_px[frame_num]
+    # print(tongue_maxes[0])
+    # print(tongue_maxes[1])
+    # tongue_px[frame_num]
+    tongue_px = np.asarray(tongue_px)
     return tongue_px
 
 

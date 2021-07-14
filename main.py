@@ -3,12 +3,14 @@ import cv2 as cv
 from scipy.signal import find_peaks
 # import argparse
 # import sys
+import matplotlib.pyplot as plt
 
 from select_tube import get_tube
 from clean_video import clean_bg_sub, extract_tongue_pixels
 from tongue_functions import find_tongue_end
 from select_meniscus import get_meniscus
 from data_analysis import analyse_video, meniscus_pos
+from regression import segments_fit
 
 
 
@@ -27,15 +29,31 @@ def main():
 
     tongue_maxes = find_tongue_end(cleaned_bg_sub)
     tongue_max_frames = find_peaks(tongue_maxes, distance=30)  # TODO: make distance scale by camera frame rate
-    print(tongue_max_frames[0])
-    print('Number of maximums=', len(tongue_max_frames[0]))
-    selected_frames = cleaned_bg_sub[tongue_max_frames[0], :, :]
+    tongue_max_frames = tongue_max_frames[0]
+    print('Number of maximums=', len(tongue_max_frames))
+    selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
 
     # meniscus_coords = get_meniscus(selected_frames)
     meniscus_coords = np.load('./data_output/meniscus_coords.npy')
 
-    meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames[0], np.shape(cleaned_bg_sub)[0])
+    meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
     tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
+
+    selected_max_frames = tongue_pixels[tongue_max_frames, :, :]
+    print(selected_max_frames)
+    for frame in selected_max_frames:
+        cv.imshow('frame', frame)
+        y, x = frame.nonzero()
+
+        px, py = segments_fit(x, y)
+        print('x: ', px)
+        print('y: ', py)
+
+        plt.figure()
+        plt.plot(x, y, 'o')
+        plt.plot(px, py, 'or-')
+
+    plt.show()
     view_video(tongue_pixels, False, cleaned_bg_sub)
 
 
