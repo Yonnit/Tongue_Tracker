@@ -8,9 +8,8 @@ from select_tube import get_tube
 from clean_video import clean_bg_sub, extract_tongue_pixels
 from tongue_functions import find_tongue_end
 from select_meniscus import get_meniscus
-from data_analysis import analyse_video, meniscus_pos
+from data_analysis import analyse_data
 from regression import piecewise_linear
-
 
 
 def main():
@@ -18,6 +17,9 @@ def main():
     # bg_sub_array = np.load('./data_output/bg_sub.npy.')
 
     # input_path = file_and_path()
+    # print("========================================")
+    # print("Please input the frame rate of the video:")
+    # frame_rate = int(input())
     # zoomed_video_arr = get_tube(input_path)
     # bg_sub_array = background_subtract(zoomed_video_arr)
     mog_bg_sub = background_subtract(zoomed_video_arr, algo='MOG2', learning_rate=0)
@@ -27,8 +29,7 @@ def main():
     cleaned_bg_sub = clean_bg_sub(mog_bg_sub)
 
     tongue_maxes = find_tongue_end(cleaned_bg_sub)
-    tongue_max_frames = find_peaks(tongue_maxes, distance=30)  # TODO: make distance scale by camera frame rate
-    tongue_max_frames = tongue_max_frames[0]
+    tongue_max_frames = find_peaks(tongue_maxes, distance=30)[0]  # TODO: make distance scale by camera frame rate
     print('Number of maximums=', len(tongue_max_frames))
     selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
 
@@ -37,26 +38,11 @@ def main():
 
     meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
     tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
-    segment_coords = piecewise_linear(tongue_pixels)
+    # segment_coords = piecewise_linear(tongue_pixels)
+    # np.save('./data_output/segment_coords.npy', segment_coords)
+    segment_coords = np.load('./data_output/segment_coords.npy')
+    analyse_data(tongue_pixels, segment_coords, tongue_max_frames)
     show_line(cleaned_bg_sub, False, segment_coords)
-
-    # selected_max_frames = tongue_pixels[tongue_max_frames, :, :]
-    # print(selected_max_frames)
-    # for frame in selected_max_frames:
-    #     cv.imshow('frame', frame)
-    #     y, x = frame.nonzero()
-    #
-    #     px, py = segments_fit(x, y)
-    #     print('x: ', px)
-    #     print('y: ', py)
-    #
-    #     plt.figure()
-    #     plt.plot(x, y, 'o')
-    #     plt.plot(px, py, 'or-')
-    #
-    # plt.show()
-    # view_video(tongue_pixels, False, cleaned_bg_sub)
-
 
     # analyse_video(cleaned_bg_sub)
 
@@ -89,22 +75,26 @@ def show_line(video_arr, is_color, segment_coords):
     else:
         color = (255, 255, 255)
         (frame_height, frame_width) = video_arr[0].shape
+    segment_coords = np.round(segment_coords)
     for frame_num, frame in enumerate(video_arr):
         color = (0, 255, 0)
-        thickness = 1
-
+        thickness = 2
+        img = frame.copy()
+        img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
         frame_segments = segment_coords[frame_num]
-        print(frame_segments)
         point_a = (int(frame_segments[0, 0]), int(frame_segments[1, 0]))
+        point_b = (int(frame_segments[0, 1]), int(frame_segments[1, 1]))
         point_c = (int(frame_segments[0, 2]), int(frame_segments[1, 2]))
-        if np.isnan(frame_segments[1, 1]):
-            cv.line(frame, point_a, point_c, color, thickness)
-        else:
-            point_b = (int(frame_segments[0, 1]), int(frame_segments[1, 1]))
-            cv.line(frame, point_a, point_b, color, thickness)
-            cv.line(frame, point_b, point_c, color, thickness)
-        cv.imshow('frame', frame)
-        key = cv.waitKey(50)  # waits 8ms between frames
+        cv.line(img, point_a, point_b, color, thickness)
+        cv.line(img, point_b, point_c, color, thickness)
+
+        y_dim, x_dim, color_values = np.asarray(np.shape(img))
+        magnification = 3
+        dim = (x_dim * magnification, y_dim * magnification)
+        img = cv.resize(img, dim, interpolation=cv.INTER_NEAREST)
+
+        cv.imshow('frame', img)
+        key = cv.waitKey(100)  # waits 8ms between frames
         if key == 27:  # if ESC is pressed, exit loop
             break
     cv.destroyAllWindows()
