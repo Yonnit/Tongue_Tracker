@@ -17,23 +17,16 @@ def largest_contiguous_region(row, threshold):
 # Takes black and white vector as input and returns the first frame that
 # is above a certain intensity for a certain number of pixels as defined
 # by segment
-def contiguous_above_thresh(row, min_seg_length, threshold=1, is_reversed=False):
+def contiguous_above_thresh(row, min_seg_length, threshold=1):
     condition = row >= threshold  # Creates array of boolean values (True = above threshold)
-    # print('Row Break')  # AKA new frame
-    if is_reversed:
-        for start, stop in reversed(contiguous_regions(condition)):  # For every
-            # print('In For Loop')
-            segment = row[start:stop]
-            # If the above threshold pixels extend across length greater than
-            # min_seg_length pixels return
-            if len(segment) > min_seg_length:
-                return stop
-    else:
-        # Trying to reverse it elsewhere DOES NOT WORK! It's stupid but this is the best I could do
-        for start, stop in contiguous_regions(condition):
-            segment = row[start:stop]
-            if len(segment) > min_seg_length:
-                return stop
+
+    # Reversed so it starts from pixels furthest from opening
+    for start, stop in reversed(contiguous_regions(condition)):
+        segment = row[start:stop]
+        # If the above threshold pixels extend across length greater than
+        # min_seg_length pixels return
+        if len(segment) > min_seg_length:
+            return stop
     return -1  # There were no segments longer than the minimum length with greater intensity than threshold
 
 
