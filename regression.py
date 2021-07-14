@@ -68,3 +68,17 @@ def segments_fit(X, Y, count=2):
 
     r = minimize(err, x0=np.r_[seg, py_init], method='Nelder-Mead')
     return func(r.x)
+
+
+# Applies the piecewise linear regression method. If a row has no tongue pixels, returns that row full of 0's
+def piecewise_linear(video_arr):
+    segment_coords = []
+    for frame in video_arr:
+        if np.count_nonzero(frame) < 4:  # If there are no nonzero values
+            segment_coords.append(np.full((2, 3), -1))
+        else:
+            y, x = frame.nonzero()
+            segment_coords.append(segments_fit(x, y))
+    segment_coords = np.asarray(segment_coords)
+    segment_coords = np.round(segment_coords)
+    return segment_coords

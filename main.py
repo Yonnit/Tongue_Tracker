@@ -3,14 +3,13 @@ import cv2 as cv
 from scipy.signal import find_peaks
 # import argparse
 # import sys
-import matplotlib.pyplot as plt
 
 from select_tube import get_tube
 from clean_video import clean_bg_sub, extract_tongue_pixels
 from tongue_functions import find_tongue_end
 from select_meniscus import get_meniscus
 from data_analysis import analyse_video, meniscus_pos
-from regression import segments_fit
+from regression import piecewise_linear
 
 
 
@@ -38,23 +37,25 @@ def main():
 
     meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
     tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
+    segment_coords = piecewise_linear(tongue_pixels)
+    show_line(cleaned_bg_sub, False, segment_coords)
 
-    selected_max_frames = tongue_pixels[tongue_max_frames, :, :]
-    print(selected_max_frames)
-    for frame in selected_max_frames:
-        cv.imshow('frame', frame)
-        y, x = frame.nonzero()
-
-        px, py = segments_fit(x, y)
-        print('x: ', px)
-        print('y: ', py)
-
-        plt.figure()
-        plt.plot(x, y, 'o')
-        plt.plot(px, py, 'or-')
-
-    plt.show()
-    view_video(tongue_pixels, False, cleaned_bg_sub)
+    # selected_max_frames = tongue_pixels[tongue_max_frames, :, :]
+    # print(selected_max_frames)
+    # for frame in selected_max_frames:
+    #     cv.imshow('frame', frame)
+    #     y, x = frame.nonzero()
+    #
+    #     px, py = segments_fit(x, y)
+    #     print('x: ', px)
+    #     print('y: ', py)
+    #
+    #     plt.figure()
+    #     plt.plot(x, y, 'o')
+    #     plt.plot(px, py, 'or-')
+    #
+    # plt.show()
+    # view_video(tongue_pixels, False, cleaned_bg_sub)
 
 
     # analyse_video(cleaned_bg_sub)
@@ -79,6 +80,34 @@ def update_meniscus_position(meniscus_coords_arr, update_position_frame, total_f
         else:
             meniscus[frame_num, :] = meniscus[frame_num - 1, :]
     return meniscus
+
+
+def show_line(video_arr, is_color, segment_coords):
+    if is_color:
+        color = (0, 255, 0)
+        (frame_height, frame_width, rgb_intensities) = video_arr[0].shape
+    else:
+        color = (255, 255, 255)
+        (frame_height, frame_width) = video_arr[0].shape
+    for frame_num, frame in enumerate(video_arr):
+        color = (0, 255, 0)
+        thickness = 1
+
+        frame_segments = segment_coords[frame_num]
+        print(frame_segments)
+        point_a = (int(frame_segments[0, 0]), int(frame_segments[1, 0]))
+        point_c = (int(frame_segments[0, 2]), int(frame_segments[1, 2]))
+        if np.isnan(frame_segments[1, 1]):
+            cv.line(frame, point_a, point_c, color, thickness)
+        else:
+            point_b = (int(frame_segments[0, 1]), int(frame_segments[1, 1]))
+            cv.line(frame, point_a, point_b, color, thickness)
+            cv.line(frame, point_b, point_c, color, thickness)
+        cv.imshow('frame', frame)
+        key = cv.waitKey(50)  # waits 8ms between frames
+        if key == 27:  # if ESC is pressed, exit loop
+            break
+    cv.destroyAllWindows()
 
 
 def view_video(video_arr, is_color, *args):
