@@ -160,7 +160,7 @@ def save_arr_to_video(arr_video_input, output_name, fps, is_color):
 
 
 # Configures parameters the user inputs when opening the program
-# Returns a map of parameters.
+# Returns a dictionary of parameters.
 def get_user_input():
     parser = argparse.ArgumentParser(description='Uses computer vision to turn video of birds feeding into data.')
     parser.add_argument('-i', '--input', required=True, help='path to input video')
