@@ -1,8 +1,9 @@
 import numpy as np
 import cv2 as cv
 from scipy.signal import find_peaks
-# import argparse
-# import sys
+import argparse
+import os.path
+import sys
 
 from select_tube import get_tube
 from clean_video import clean_bg_sub, extract_tongue_pixels
@@ -13,47 +14,33 @@ from regression import piecewise_linear
 
 
 def main():
-    zoomed_video_arr = np.load('./data_output/cropped_video.npy')
+    # zoomed_video_arr = np.load('./data_output/cropped_video.npy')
     # bg_sub_array = np.load('./data_output/bg_sub.npy.')
 
-    # input_path = file_and_path()
-    # print("========================================")
-    # print("Please input the frame rate of the video:")
-    # frame_rate = int(input())
-    # zoomed_video_arr = get_tube(input_path)
+    input_data = get_user_input()
+    zoomed_video_arr = get_tube(input_data['input'])
     # bg_sub_array = background_subtract(zoomed_video_arr)
     mog_bg_sub = background_subtract(zoomed_video_arr, algo='MOG2', learning_rate=0)
-    # np.save('./data_output/cropped_video', zoomed_video_arr)
-    # np.save('./data_output/bg_sub', bg_sub_array)
-
     cleaned_bg_sub = clean_bg_sub(mog_bg_sub)
-
-    tongue_maxes = find_tongue_end(cleaned_bg_sub)
-    tongue_max_frames = find_peaks(tongue_maxes, distance=30)[0]  # TODO: make distance scale by camera frame rate
-    print('Number of maximums=', len(tongue_max_frames))
-    selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
-
-    # meniscus_coords = get_meniscus(selected_frames)
-    meniscus_coords = np.load('./data_output/meniscus_coords.npy')
-
-    meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
-    tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
-    # segment_coords = piecewise_linear(tongue_pixels)
-    # np.save('./data_output/segment_coords.npy', segment_coords)
-    segment_coords = np.load('./data_output/segment_coords.npy')
-    analyse_data(tongue_pixels, segment_coords, tongue_max_frames)
-    show_line(cleaned_bg_sub, False, segment_coords)
+    view_video(kkncleaned, False, cleaned_bg_sub)
+    #
+    # tongue_maxes = find_tongue_end(cleaned_bg_sub)
+    # tongue_max_frames = find_peaks(tongue_maxes, distance=30)[0]  # TODO: make distance scale by camera frame rate
+    # print('Number of maximums=', len(tongue_max_frames))
+    # selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
+    #
+    # # meniscus_coords = get_meniscus(selected_frames)
+    # meniscus_coords = np.load('./data_output/meniscus_coords.npy')
+    #
+    # meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
+    # tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
+    # # segment_coords = piecewise_linear(tongue_pixels)
+    # # np.save('./data_output/segment_coords.npy', segment_coords)
+    # segment_coords = np.load('./data_output/segment_coords.npy')
+    # analyse_data(tongue_pixels, segment_coords, tongue_max_frames)
+    # show_line(cleaned_bg_sub, False, segment_coords)
 
     # analyse_video(cleaned_bg_sub)
-
-    # dot_vid_arr = show_both_loc(tongue_points, zoomed_video_arr, meniscus)
-    # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
-
-    # dot_vid_arr = show_tongue_loc(tongue_points, zoomed_video_arr)
-    # save_arr_to_video(dot_vid_arr, "tongue_position", 20, True)
-
-    # line_vid_arr = show_position(tongue_x_pos, bg_sub_array, False)  # , meniscus_x_pos (add to end later)
-    # save_arr_to_video(line_vid_arr, "estimated_position", 20, False)
 
 
 def update_meniscus_position(meniscus_coords_arr, update_position_frame, total_frame_count):
@@ -126,104 +113,6 @@ def view_video(video_arr, is_color, *args):
     return line_video_arr
 
 
-def show_both_loc(tongue_xy_coords, video_to_compare_arr, meniscus_xy_coords):
-    (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
-
-    line_video_arr = []
-    frame_num = 0
-    for frame in video_to_compare_arr:
-        # print(frame_num)
-        thickness = 1
-        radius = 1
-
-        for idx, y_coord in enumerate(tongue_xy_coords[frame_num]):
-            color = (0, 255, 0)
-            if np.isnan(y_coord):
-                y_coord = -1  # replace nans with placeholder
-            center_coordinates = idx, int(y_coord)
-            frame = cv.circle(frame, center_coordinates, radius, color, thickness)
-
-        for y_coord, x_coord in enumerate(meniscus_xy_coords[frame_num]):
-            color = (255, 0, 0)
-            center_coordinates = x_coord, y_coord
-            frame = cv.circle(frame, center_coordinates, radius, color, thickness)
-
-        cv.imshow('frame', frame)
-        line_video_arr.append(frame)
-        key = cv.waitKey(0)  # waits 8ms between frames
-        if key == 27:  # if ESC is pressed, exit loop
-            break
-        frame_num += 1
-    cv.destroyAllWindows()
-    line_video_arr = np.asarray(line_video_arr)
-    return line_video_arr
-
-
-def show_tongue_loc(tongue_xy_coords, video_to_compare_arr):
-    color = (0, 255, 0)
-    (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
-
-    line_video_arr = []
-    frame_num = 0
-    for frame in video_to_compare_arr:
-        # print(frame_num)
-
-        thickness = 1
-        radius = 1
-
-        for idx, y_coord in enumerate(tongue_xy_coords[frame_num]):
-            center_coordinates = idx, y_coord
-            frame = cv.circle(frame, center_coordinates, radius, color, thickness)
-
-        cv.imshow('frame', frame)
-        line_video_arr.append(frame)
-        key = cv.waitKey(8)  # waits 8ms between frames
-        if key == 27:  # if ESC is pressed, exit loop
-            break
-        frame_num += 1
-    cv.destroyAllWindows()
-    line_video_arr = np.asarray(line_video_arr)
-    return line_video_arr
-
-
-# Takes the estimated x position and a cropped video array
-# Displays, then Returns a video array with the estimated x-position line
-# included in it. Can include additional inputted positions in the
-# *args.
-def show_position(estimated_position, video_to_compare_arr, is_color, *args):
-    if is_color:
-        color = (0, 255, 0)
-        (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
-    else:
-        color = (255, 255, 255)
-        (frame_height, frame_width) = video_to_compare_arr[0].shape
-
-    line_video_arr = []
-    frame_num = 0
-    for frame in video_to_compare_arr:
-        # print(frame_num)
-
-        start_point = estimated_position[frame_num], 0
-        end_point = estimated_position[frame_num], frame_height
-        thickness = 1
-        frame = cv.line(frame, start_point, end_point, color, thickness)
-
-        for arg in args:
-            start_point = arg[frame_num], 0
-            end_point = arg[frame_num], frame_height
-            frame = cv.line(frame, start_point, end_point, color, thickness)
-
-        cv.imshow('frame', frame)
-        line_video_arr.append(frame)
-        key = cv.waitKey(50)  # waits 8ms between frames
-        if key == 27:  # if ESC is pressed, exit loop
-            break
-        frame_num += 1
-    cv.destroyAllWindows()
-    line_video_arr = np.asarray(line_video_arr)
-    return line_video_arr
-
-
 # TODO: allow user to set --algo to switch between MOG2 and KNN
 # Applies opencv's background subtract method to the inputted video
 # and returns that video as an array of frames that contain frame data.
@@ -270,14 +159,21 @@ def save_arr_to_video(arr_video_input, output_name, fps, is_color):
     print(f"Saved to {output_path_and_name}")
 
 
-# Prompts user to input file name
-# Returns path and name in directory
-# TODO: configure argparse so user selects file location, and other params
-def file_and_path():  # Will likely use argparse here
-    input_file_name = "vid_from_imgs.avi"
-    path = "./video_input/"
-    return path + input_file_name
-
+# Configures parameters the user inputs when opening the program
+# Returns a map of parameters.
+def get_user_input():
+    parser = argparse.ArgumentParser(description='Uses computer vision to turn video of birds feeding into data.')
+    parser.add_argument('-i', '--input', required=True, help='path to input video')
+    parser.add_argument('-f', '--fps', required=True, type=int,
+                        help='input the frames per second that the video was captured at')
+    parser.add_argument('-o', '--output', help='path to output folder', default='./data_output/')
+    args = vars(parser.parse_args())
+    path = args['input'].strip(' ./')
+    if not os.path.isfile(path):
+        print('Could not open or find the file: ', args['input'])
+        sys.exit(-1)
+    args['input'] = path
+    return args
 
 # makes main() a main function similar to Java, C, C++
 if __name__ == '__main__':
@@ -324,6 +220,105 @@ if __name__ == '__main__':
 
 ##########################################################################################
 # Junkyard
+
+
+# def show_both_loc(tongue_xy_coords, video_to_compare_arr, meniscus_xy_coords):
+#     (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
+#
+#     line_video_arr = []
+#     frame_num = 0
+#     for frame in video_to_compare_arr:
+#         # print(frame_num)
+#         thickness = 1
+#         radius = 1
+#
+#         for idx, y_coord in enumerate(tongue_xy_coords[frame_num]):
+#             color = (0, 255, 0)
+#             if np.isnan(y_coord):
+#                 y_coord = -1  # replace nans with placeholder
+#             center_coordinates = idx, int(y_coord)
+#             frame = cv.circle(frame, center_coordinates, radius, color, thickness)
+#
+#         for y_coord, x_coord in enumerate(meniscus_xy_coords[frame_num]):
+#             color = (255, 0, 0)
+#             center_coordinates = x_coord, y_coord
+#             frame = cv.circle(frame, center_coordinates, radius, color, thickness)
+#
+#         cv.imshow('frame', frame)
+#         line_video_arr.append(frame)
+#         key = cv.waitKey(0)  # waits 8ms between frames
+#         if key == 27:  # if ESC is pressed, exit loop
+#             break
+#         frame_num += 1
+#     cv.destroyAllWindows()
+#     line_video_arr = np.asarray(line_video_arr)
+#     return line_video_arr
+#
+#
+# def show_tongue_loc(tongue_xy_coords, video_to_compare_arr):
+#     color = (0, 255, 0)
+#     (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
+#
+#     line_video_arr = []
+#     frame_num = 0
+#     for frame in video_to_compare_arr:
+#         # print(frame_num)
+#
+#         thickness = 1
+#         radius = 1
+#
+#         for idx, y_coord in enumerate(tongue_xy_coords[frame_num]):
+#             center_coordinates = idx, y_coord
+#             frame = cv.circle(frame, center_coordinates, radius, color, thickness)
+#
+#         cv.imshow('frame', frame)
+#         line_video_arr.append(frame)
+#         key = cv.waitKey(8)  # waits 8ms between frames
+#         if key == 27:  # if ESC is pressed, exit loop
+#             break
+#         frame_num += 1
+#     cv.destroyAllWindows()
+#     line_video_arr = np.asarray(line_video_arr)
+#     return line_video_arr
+#
+#
+# # Takes the estimated x position and a cropped video array
+# # Displays, then Returns a video array with the estimated x-position line
+# # included in it. Can include additional inputted positions in the
+# # *args.
+# def show_position(estimated_position, video_to_compare_arr, is_color, *args):
+#     if is_color:
+#         color = (0, 255, 0)
+#         (frame_height, frame_width, rgb_intensities) = video_to_compare_arr[0].shape
+#     else:
+#         color = (255, 255, 255)
+#         (frame_height, frame_width) = video_to_compare_arr[0].shape
+#
+#     line_video_arr = []
+#     frame_num = 0
+#     for frame in video_to_compare_arr:
+#         # print(frame_num)
+#
+#         start_point = estimated_position[frame_num], 0
+#         end_point = estimated_position[frame_num], frame_height
+#         thickness = 1
+#         frame = cv.line(frame, start_point, end_point, color, thickness)
+#
+#         for arg in args:
+#             start_point = arg[frame_num], 0
+#             end_point = arg[frame_num], frame_height
+#             frame = cv.line(frame, start_point, end_point, color, thickness)
+#
+#         cv.imshow('frame', frame)
+#         line_video_arr.append(frame)
+#         key = cv.waitKey(50)  # waits 8ms between frames
+#         if key == 27:  # if ESC is pressed, exit loop
+#             break
+#         frame_num += 1
+#     cv.destroyAllWindows()
+#     line_video_arr = np.asarray(line_video_arr)
+#     return line_video_arr
+
 
 
 # def find_meniscus_pos(mode_vertical):
