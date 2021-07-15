@@ -22,7 +22,6 @@ def main():
     zoomed_video_arr = get_tube(user_input['input'])
     # bg_sub_array = background_subtract(zoomed_video_arr)
     mog_bg_sub = background_subtract(zoomed_video_arr, algo='MOG2', learning_rate=0)
-    mog_bg_sub = mog_bg_sub[0:500]
     cleaned_bg_sub = clean_bg_sub(mog_bg_sub)
 
     tongue_maxes = find_tongue_end(cleaned_bg_sub)
