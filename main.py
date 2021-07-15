@@ -15,30 +15,30 @@ from regression import piecewise_linear
 
 def main():
     # zoomed_video_arr = np.load('./data_output/cropped_video.npy')
-    # bg_sub_array = np.load('./data_output/bg_sub.npy.')
+    # meniscus_coords = np.load('./data_output/meniscus_coords.npy')
+    # segment_coords = np.load('./data_output/segment_coords.npy')
 
-    input_data = get_user_input()
-    zoomed_video_arr = get_tube(input_data['input'])
+    user_input = get_user_input()
+    zoomed_video_arr = get_tube(user_input['input'])
     # bg_sub_array = background_subtract(zoomed_video_arr)
     mog_bg_sub = background_subtract(zoomed_video_arr, algo='MOG2', learning_rate=0)
+    mog_bg_sub = mog_bg_sub[0:500]
     cleaned_bg_sub = clean_bg_sub(mog_bg_sub)
-    view_video(kkncleaned, False, cleaned_bg_sub)
-    #
-    # tongue_maxes = find_tongue_end(cleaned_bg_sub)
-    # tongue_max_frames = find_peaks(tongue_maxes, distance=30)[0]  # TODO: make distance scale by camera frame rate
-    # print('Number of maximums=', len(tongue_max_frames))
-    # selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
-    #
-    # # meniscus_coords = get_meniscus(selected_frames)
-    # meniscus_coords = np.load('./data_output/meniscus_coords.npy')
-    #
-    # meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
-    # tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
-    # # segment_coords = piecewise_linear(tongue_pixels)
-    # # np.save('./data_output/segment_coords.npy', segment_coords)
-    # segment_coords = np.load('./data_output/segment_coords.npy')
-    # analyse_data(tongue_pixels, segment_coords, tongue_max_frames)
-    # show_line(cleaned_bg_sub, False, segment_coords)
+
+    tongue_maxes = find_tongue_end(cleaned_bg_sub)
+    # TODO: make distance scale by camera frame rate
+    tongue_max_frames = find_peaks(tongue_maxes, distance=30)[0]
+    print('Number of maximums=', len(tongue_max_frames))
+    selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
+
+    meniscus_coords = get_meniscus(selected_frames)
+
+    meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
+    tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
+    segment_coords = piecewise_linear(tongue_pixels)
+
+    analyse_data(tongue_pixels, segment_coords, tongue_max_frames, user_input)
+    show_line(cleaned_bg_sub, False, segment_coords)
 
     # analyse_video(cleaned_bg_sub)
 
@@ -104,7 +104,7 @@ def view_video(video_arr, is_color, *args):
             cv.imshow(f'video{video_num}', video[frame_num])
         cv.imshow('frame', frame)
         line_video_arr.append(frame)
-        key = cv.waitKey(50)  # waits 8ms between frames
+        key = cv.waitKey(20)  # waits 8ms between frames
         if key == 27:  # if ESC is pressed, exit loop
             break
         frame_num += 1
@@ -167,7 +167,9 @@ def get_user_input():
     parser.add_argument('-f', '--fps', required=True, type=int,
                         help='input the frames per second that the video was captured at')
     parser.add_argument('-o', '--output', help='path to output folder', default='./data_output/')
+    # parser.add_argument()
     args = vars(parser.parse_args())
+    args['output'].strip(' ./')
     path = args['input'].strip(' ./')
     if not os.path.isfile(path):
         print('Could not open or find the file: ', args['input'])

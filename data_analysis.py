@@ -1,8 +1,12 @@
 import numpy as np
+import datetime
+import ntpath
 
 
-def analyse_data(tongue_pixels, segment_coords, tongue_max_frames):
-    lengths(segment_coords)
+def analyse_data(tongue_pixels, segment_coords, tongue_max_frames, user_input):
+    tongue_lengths = lengths(segment_coords)
+
+    save_results(tongue_lengths, user_input['output'], user_input['input'])
 
 
 def lengths(segment_coords):
@@ -13,16 +17,28 @@ def lengths(segment_coords):
     yb = segment_coords[:, 1, 1]
     yc = segment_coords[:, 1, 2]
     sum_length = segment_length(xa, xb, ya, yb) + segment_length(xb, xc, yb, yc)
+    return sum_length
     # np.savetxt("./data_output/lengths.csv", sum_length, delimiter=",")
-
 
 
 def segment_length(x1, x2, y1, y2):
     return np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
 
+def save_results(data, path, input_path):
+    now = datetime.datetime.now()
+    current_time = now.strftime("%Y%m%d_%H%M%S")
+    input_file_name = path_leaf(input_path).split(".")[0]
+
+    name = f"{input_file_name}__{current_time}"
+    name_and_path = f'./{path}/{name}.csv'
+    np.savetxt(name_and_path, data, delimiter=",")
 
 
+# Returns the file name from a string path
+def path_leaf(path):
+    head, tail = ntpath.split(path)
+    return tail or ntpath.basename(head)
 
 
 # import numpy as np

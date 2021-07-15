@@ -8,8 +8,11 @@ from transform import get_four_point_transform, apply_four_point_transform
 # Gets tube corners and returns video array zoomed in on the tube
 def get_tube(file_path):  # TODO: make filepath user inputted
     first_frame = grab_first_frame(file_path)
-    (tube_location_data, opening_is_left) = select_corners(first_frame)
-    vid_tube = zoom_into_tube(tube_location_data, file_path, opening_is_left)
+    while True:
+        tube_location_data, key = select_corners(first_frame)
+        if key != ord("c"):
+            break
+    vid_tube = zoom_into_tube(tube_location_data, file_path, key)
     return vid_tube
 
 
@@ -34,9 +37,6 @@ def click_and_crop(event, x, y, flags, param):
         print(f'Clicked corner {len(CORNER_COORDS)}/4')
 
 
-# TODO: somehow figure out how to deal with different feeding tube orientations
-#   somewhere the user is going to have to input which way the tube is facing
-#   can be dealt with during the to vertical bars portion or manually rotated here
 # Displays image, prompts user to click 4 corners of desired object.
 # Returns the data which can later be used to zoom into the area contained
 # within the four points
@@ -44,7 +44,8 @@ def select_corners(img):
     global CORNER_COORDS  # double check that I actually need a global variable here
     CORNER_COORDS = []
 
-    win_name = "Click the 4 Corners (Press 'Q' to Cancel)"
+    print("Click the 4 Corners of the Tube. Press 'ESC' to Quit")
+    win_name = "Click the 4 Corners (Press 'ESC' to Quit)"
     cv.namedWindow(win_name)
     cv.setMouseCallback(win_name, click_and_crop)
 
@@ -62,29 +63,34 @@ def select_corners(img):
 
     print(f"The dimensions of the cropped image: Height={warped.shape[0]}, Width={warped.shape[1]}")
     print()
-    print("If UNSATISFIED with the crop, press 'Q' to Cancel")
+    print()
+    print("To EXIT the program, press 'ESC'")
+    print("If UNSATISFIED with the crop, press 'C' to Cancel and Restart")
     print("If SATISFIED with the crop, please select the direction of the opening of the tube to continue.")
-    print("'L' if the opening is on the left, and 'R' if the opening is on the right")
+    print("'W' if the opening is on the top, 'S' if the opening is on the bottom")
+    print("'A' if the opening is on the left, and 'D' if the opening is on the right")
     while True:
         cv.imshow("Cropped image. Read console for instructions", warped)
-        key = cv.waitKey(0) & 0xFF
-        if key == 27 or key == ord("q"):  # If the user presses Q or ESC
+        key = cv.waitKey(4) & 0xFF
+        if key == 27:
             cv.destroyAllWindows()
             sys.exit(-1)
-        elif key == ord("l"):
-            opening_is_left = True
+        elif key == ord("c"):
+            print("Cancel")
             break
-        elif key == ord("r"):
-            opening_is_left = False
+        elif key in {ord("w"), ord("a"), ord("s"), ord("d")}:
+            print("Continue")
             break
     cv.destroyAllWindows()
-    return transform_data, opening_is_left
+    return transform_data, key
 
 
 # Takes the corner coordinate data and zooms the video into the coordinate
 # data collected. Returns an array which contains the frame data with the
 # index being the frame number starting from 0.
-def zoom_into_tube(transform_data, file_path, opening_is_left):
+# Opening dir is a integer representing a unicode character.
+# The letter indicates the direction of the opening (W,A,S,D)
+def zoom_into_tube(transform_data, file_path, opening_dir):
     cap = cv.VideoCapture(file_path)
     if not cap.isOpened():
         print('Error opening video file')
@@ -100,8 +106,12 @@ def zoom_into_tube(transform_data, file_path, opening_is_left):
         if not exists_frame:
             break
         cropped_frame = apply_four_point_transform(frame, transform_data)
-        if not opening_is_left:
+        if opening_dir == ord("d"):
             cropped_frame = cv.flip(cropped_frame, 1)
+        elif opening_dir == ord("w"):
+            cropped_frame = cv.rotate(cropped_frame, cv.ROTATE_90_COUNTERCLOCKWISE)
+        elif opening_dir == ord("s"):
+            cropped_frame = cv.rotate(cropped_frame, cv.ROTATE_90_CLOCKWISE)
         video_array.append(cropped_frame)
     cap.release()
     cv.destroyAllWindows()
