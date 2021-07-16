@@ -20,6 +20,7 @@ def main():
 
     user_input = get_user_input()
     zoomed_video_arr = get_tube(user_input['input'])
+
     # bg_sub_array = background_subtract(zoomed_video_arr)
     mog_bg_sub = background_subtract(zoomed_video_arr, algo='MOG2', learning_rate=0)
     cleaned_bg_sub = clean_bg_sub(mog_bg_sub)
@@ -127,6 +128,10 @@ def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
     else:
         back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=40)  # Raise threshold & history?
     bg_subbed_vid_arr = []
+    print("Beginning Calibration")
+    for frame in input_video_arr:
+        back_sub.apply(frame, learningRate=learning_rate)
+    print("Done with Calibration")
     for frame in input_video_arr:
         foreground_mask = back_sub.apply(frame, learningRate=learning_rate)
         bg_subbed_vid_arr.append(foreground_mask)
@@ -171,7 +176,7 @@ def get_user_input():
     args['output'].strip(' ./')
     path = args['input'].strip(' ./')
     if not os.path.isfile(path):
-        print('Could not open or find the file: ', args['input'])
+        print('Could not find the file: ', args['input'])
         sys.exit(-1)
     args['input'] = path
     return args
