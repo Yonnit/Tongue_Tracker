@@ -43,12 +43,20 @@ def select_intersection(frame):
         def __init__(self):
             self.points = -1
             self.clicked = False
+            self.magnification = 1
 
         def select_point(self, event, x, y, flags, param):
             if event == cv.EVENT_LBUTTONDOWN and not self.clicked:
                 cv.circle(img, (x, y), 3, (0, 120, 0), -1)
-                self.points = (x, y)
+                self.points = (int(x / self.magnification), int(y / self.magnification))
                 self.clicked = True
+
+        def zoom_in(self):
+            self.magnification += 1
+
+        def zoom_out(self):
+            if self.magnification > 1:
+                self.magnification -= 1
 
     # instantiate class
     coordinateStore1 = CoordinateStore()
@@ -59,7 +67,12 @@ def select_intersection(frame):
     cv.namedWindow('image')
     cv.setMouseCallback('image', coordinateStore1.select_point)
 
+    y_dim, x_dim, px_value = np.asarray(np.shape(img))
+
     while True:
+        magnification = coordinateStore1.magnification
+        dim = (x_dim * magnification, y_dim * magnification)
+        img = cv.resize(img, dim, interpolation=cv.INTER_NEAREST)
         cv.imshow('image', img)
         k = cv.waitKey(20) & 0xFF
         if k == 27 or k == ord("q"):  # ESC or Q
@@ -71,6 +84,10 @@ def select_intersection(frame):
         elif k == ord('r'):  # R
             cv.destroyAllWindows()
             return -1
+        elif k == ord('='):
+            coordinateStore1.zoom_in()
+        elif (k == ord("-")) and coordinateStore1.magnification > 1:
+            coordinateStore1.zoom_out()
 
 
 if __name__ == '__main__':
