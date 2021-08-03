@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 import sys
+import math
 
 from transform import get_four_point_transform, apply_four_point_transform
 
@@ -81,6 +82,10 @@ def select_corners(img):
             MAGNIFICATION += 1
         elif (key == ord("-")) and MAGNIFICATION > 1:
             MAGNIFICATION -= 1
+    # a, b = CORNER_COORDS
+    # theta = angle_from_hor(a, b)
+    # print(f'Theta = {theta}')
+    # warped = rotate_bound(img, -theta)
 
     cv.destroyAllWindows()
     corner_array = np.array(CORNER_COORDS, dtype="float32")
@@ -110,6 +115,13 @@ def select_corners(img):
     cv.destroyAllWindows()
     return transform_data, key
 
+
+# Finds the angle that the line segment connecting the two
+# points deviates from horizontal
+# Returned value is in degrees
+def angle_from_hor(p1, p2):
+    theta = math.atan((p2[1] - p1[1])/(p2[0] - p1[0]))
+    return np.rad2deg(theta)
 
 # Takes the corner coordinate data and zooms the video into the coordinate
 # data collected. Returns an array which contains the frame data with the
