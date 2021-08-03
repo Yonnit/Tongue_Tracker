@@ -3,8 +3,47 @@ from scipy import optimize
 # import math
 import matplotlib.pyplot as plt
 import cv2 as cv
-#
-# import cv2
+
+
+def main():
+    # a = np.load('./data_output/mog_bg_sub.npy')
+    # a = a[24]
+    # rotated = rotate_bound(a, 30)
+    # while True:
+    #     cv.imshow('un-rotated', a)
+    #     cv.imshow('rotated', rotated)
+    #     key = cv.waitKey(2)
+    a = angle_between((1, 0), (1, -1))
+    print(a)
+
+def angle_between(p1, p2):
+    ang1 = np.arctan2(*p1[::-1])
+    ang2 = np.arctan2(*p2[::-1])
+    return np.rad2deg((ang1 - ang2) % (2 * np.pi))
+
+
+# Explanation here: https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
+def rotate_bound(image, angle):
+    # grab the dimensions of the image and then determine the
+    # center
+    (h, w) = image.shape[:2]
+    (cX, cY) = (w // 2, h // 2)
+    # grab the rotation matrix (applying the negative of the
+    # angle to rotate clockwise), then grab the sine and cosine
+    # (i.e., the rotation components of the matrix)
+    M = cv.getRotationMatrix2D((cX, cY), -angle, 1.0)
+    cos = np.abs(M[0, 0])
+    sin = np.abs(M[0, 1])
+    # compute the new bounding dimensions of the image
+    nW = int((h * sin) + (w * cos))
+    nH = int((h * cos) + (w * sin))
+    # adjust the rotation matrix to take into account translation
+    M[0, 2] += (nW / 2) - cX
+    M[1, 2] += (nH / 2) - cY
+    # perform the actual rotation and return the image
+    return cv.warpAffine(image, M, (nW, nH))
+
+
 
 
 # from __future__ import print_function
@@ -72,50 +111,50 @@ import cv2 as cv
 
 # https://gist.github.com/ruoyu0088/70effade57483355bbd18b31dc370f2a
 
-def main():
-    # meniscus_eq = np.asarray([-1.76432786e-02, 1.23399985e+00, 4.36404085e+01])
-    points = np.load('./data_output/mog_bg_sub.npy')
-    # meniscus = np.load('./data_output/meniscus_coords_arr.npy')
-    meniscus = np.load('./data_output/per_frame_meniscus_coords.npy')
-    # points = np.load('./data_output/tongue_points.npy', allow_pickle=True)
-    max_frames = np.array([24,   64,   97,  141,  174,  209,  241,  272,  307,  343,  377,
-        412,  447,  486,  527,  573,  610,  647,  690,  736,  782,  828,
-        871,  911,  963, 1007, 1047, 1090, 1137, 1182, 1212])
-    for frame_num in max_frames:
-        meniscus = int(meniscus[frame_num][0])
-        print(meniscus)
-        # meniscus_max = np.max(meniscus)
-        points = points[frame_num]
-
-        cv.imshow('frame', points)
-        points = np.asarray(points)
-        print(np.shape(points))
-
-        points[:, :(meniscus + 2)] = 0  # setting lower bounds (+ 2 pixels to remove artifacts due to the meniscus)
-        points[:, 163:] = 0  # setting upper bounds
-        cv.imshow('frame2', points)
-        y, x = points.nonzero()
-
-        # x = np.arange(len(points))
-        # y = points
-        # x = x[40:]
-        # y = points[40:]
-        # print(y)
-
-        px, py = segments_fit(x, y)
-        print('x: ', px)
-        print('y: ', py)
-
-        # solx, soly = intercepts(px, py, meniscus_eq)
-        # print(solx, soly)
-
-        plt.plot(x, y, 'o')
-        plt.plot(px, py, 'or-')
-        # plt.plot([solx], [soly], 'rx')
-        plt.show()
-        key = cv.waitKey(300)  # waits _ms between frames
-        if key == 27:  # if ESC is pressed, exit loop
-            break
+# def main():
+#     # meniscus_eq = np.asarray([-1.76432786e-02, 1.23399985e+00, 4.36404085e+01])
+#     points = np.load('./data_output/mog_bg_sub.npy')
+#     # meniscus = np.load('./data_output/meniscus_coords_arr.npy')
+#     meniscus = np.load('./data_output/per_frame_meniscus_coords.npy')
+#     # points = np.load('./data_output/tongue_points.npy', allow_pickle=True)
+#     max_frames = np.array([24,   64,   97,  141,  174,  209,  241,  272,  307,  343,  377,
+#         412,  447,  486,  527,  573,  610,  647,  690,  736,  782,  828,
+#         871,  911,  963, 1007, 1047, 1090, 1137, 1182, 1212])
+#     for frame_num in max_frames:
+#         meniscus = int(meniscus[frame_num][0])
+#         print(meniscus)
+#         # meniscus_max = np.max(meniscus)
+#         points = points[frame_num]
+#
+#         cv.imshow('frame', points)
+#         points = np.asarray(points)
+#         print(np.shape(points))
+#
+#         points[:, :(meniscus + 2)] = 0  # setting lower bounds (+ 2 pixels to remove artifacts due to the meniscus)
+#         points[:, 163:] = 0  # setting upper bounds
+#         cv.imshow('frame2', points)
+#         y, x = points.nonzero()
+#
+#         # x = np.arange(len(points))
+#         # y = points
+#         # x = x[40:]
+#         # y = points[40:]
+#         # print(y)
+#
+#         px, py = segments_fit(x, y)
+#         print('x: ', px)
+#         print('y: ', py)
+#
+#         # solx, soly = intercepts(px, py, meniscus_eq)
+#         # print(solx, soly)
+#
+#         plt.plot(x, y, 'o')
+#         plt.plot(px, py, 'or-')
+#         # plt.plot([solx], [soly], 'rx')
+#         plt.show()
+#         key = cv.waitKey(300)  # waits _ms between frames
+#         if key == 27:  # if ESC is pressed, exit loop
+#             break
 
 
 def intercepts(x, y, meniscus):
