@@ -59,11 +59,15 @@ def click_and_crop(event, x, y, flags, param):
 # Returns the data which can later be used to zoom into the area contained
 # within the four points
 def select_corners(img):
-    global CORNER_COORDS, MAGNIFICATION  # double check that I actually need a global variable here
+    global CORNER_COORDS, MAGNIFICATION  # I know this is bad practice, blame the person before me
     CORNER_COORDS = []
 
-    print("Click the 4 Corners of the Tube. Press 'ESC' to Quit")
-    win_name = "Click the 4 Corners (Press 'ESC' to Quit)"
+    print("First, select the two corners on the same side of the tube."
+          "Then select any point on the opposite side of the tube."
+          ""
+          "Press '+' to zoom in. Press '-' to zoom out"
+          "Press 'ESC' to Quit")
+    win_name = "Follow Console Instructions (Press 'ESC' to Quit)"
     cv.namedWindow(win_name)
     cv.setMouseCallback(win_name, click_and_crop)
 
@@ -82,19 +86,15 @@ def select_corners(img):
             MAGNIFICATION += 1
         elif (key == ord("-")) and MAGNIFICATION > 1:
             MAGNIFICATION -= 1
-    # a, b = CORNER_COORDS
-    # theta = angle_from_hor(a, b)
-    # print(f'Theta = {theta}')
-    # warped = rotate_bound(img, -theta)
 
     cv.destroyAllWindows()
 
-    line_ab = LineSegment(CORNER_COORDS[0], CORNER_COORDS[1])
-    perp_slope = line_ab.get_perpendicular()
+    line_ab = LineSegment(CORNER_COORDS[0], CORNER_COORDS[1])  # line_ab is the side of the tube first selected
+    perp_slope = line_ab.get_perpendicular()  # Gets slope of line perpendicular to ab
     x_c, y_c = CORNER_COORDS[2]
-    perp_b = -(perp_slope * x_c) + y_c
-    intercept = line_ab.get_intercept(perp_slope, perp_b)
-    line_cd = LineSegment(CORNER_COORDS[2], intercept)
+    perp_b = -(perp_slope * x_c) + y_c  # Finds b (y-intercept) for the perpendicular line that intersects point c
+    intercept = line_ab.get_intercept(perp_slope, perp_b)  # finds where the perpendicular line intercepts line_ab
+    line_cd = LineSegment(CORNER_COORDS[2], intercept)  # creates a LineSegment given point_c and the intercept point
     translation_vector = line_cd.get_vector()
     line_gh = line_ab.translate_copy(translation_vector)
     corner_array = line_ab.point_a, line_ab.point_b, line_gh.point_a, line_gh.point_b
