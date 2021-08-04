@@ -69,8 +69,8 @@ def select_corners(img):
 
     y_dim, x_dim, px_value = np.asarray(np.shape(img))
     MAGNIFICATION = 1
-    # While less than 4 corners are clicked
-    while len(CORNER_COORDS) < 4:
+    # While less than 3 clicks
+    while len(CORNER_COORDS) < 3:
         dim = (x_dim * MAGNIFICATION, y_dim * MAGNIFICATION)
         frame = cv.resize(img, dim, interpolation=cv.INTER_NEAREST)
         cv.imshow(win_name, frame)
@@ -88,7 +88,18 @@ def select_corners(img):
     # warped = rotate_bound(img, -theta)
 
     cv.destroyAllWindows()
-    corner_array = np.array(CORNER_COORDS, dtype="float32")
+
+    line_ab = LineSegment(CORNER_COORDS[0], CORNER_COORDS[1])
+    perp_slope = line_ab.get_perpendicular()
+    x_c, y_c = CORNER_COORDS[2]
+    perp_b = -(perp_slope * x_c) + y_c
+    intercept = line_ab.get_intercept(perp_slope, perp_b)
+    line_cd = LineSegment(CORNER_COORDS[2], intercept)
+    translation_vector = line_cd.get_vector()
+    line_gh = line_ab.translate_copy(translation_vector)
+    corner_array = line_ab.point_a, line_ab.point_b, line_gh.point_a, line_gh.point_b
+
+    corner_array = np.array(corner_array, dtype="float32")
     transform_data = get_four_point_transform(corner_array)
     warped = apply_four_point_transform(img, transform_data)
 
@@ -115,13 +126,6 @@ def select_corners(img):
     cv.destroyAllWindows()
     return transform_data, key
 
-
-# Finds the angle that the line segment connecting the two
-# points deviates from horizontal
-# Returned value is in degrees
-def angle_from_hor(p1, p2):
-    theta = math.atan((p2[1] - p1[1])/(p2[0] - p1[0]))
-    return np.rad2deg(theta)
 
 # Takes the corner coordinate data and zooms the video into the coordinate
 # data collected. Returns an array which contains the frame data with the
@@ -160,6 +164,56 @@ def zoom_into_tube(transform_data, file_path, roi, opening_dir):
     print()
     return video_array
 
+# # Takes 2 corner coords (a and b) and the opposite side's coords
+# # Returns the 4 corner coords of the rectangle
+# def find_corners(point_a, point_b, point_c):
+#     x_a = point_a[0]
+#     x_b = point_b[0]
+#     y_a = point_a[1]
+#     y_b = point_b[1]
+#     c_a = point_c[0]
+#     c_b = point_c[1]
+#     m_ab = (y_a - y_b) / (x_a - x_b)
+#     m_cd = -1 / m_ab
+#     b_cd =
+#     x_d = ()
+
+
+class LineSegment:
+    def __init__(self, point_a, point_b):
+        self.point_a = point_a
+        self.point_b = point_b
+        self.x_a = point_a[0]
+        self.x_b = point_b[0]
+        self.y_a = point_a[1]
+        self.y_b = point_b[1]
+        self.m = (self.y_a - self.y_b) / (self.x_a - self.x_b)
+        self.b = -self.m * self.x_a + self.y_a
+
+    @staticmethod
+    def from_point_slope(point, slope):
+        b = -slope * point[0] + point[1]
+
+    def get_intercept(self, m, b):
+        xi = (self.b - b) / (m - self.m)
+        yi = (self.m * xi + self.b)
+        return xi, yi
+
+    def get_perpendicular(self):
+        return -1 / self.m
+
+    def get_vector(self):
+        return self.x_a - self.x_b, self.y_a - self.y_b
+
+    def translate_copy(self, translation_vector):
+        x = translation_vector[0]
+        y = translation_vector[1]
+        x_a = self.x_a + x
+        x_b = self.x_b + x
+        y_a = self.y_a + y
+        y_b = self.y_b + y
+        return LineSegment((x_a, y_a), (x_b, y_b))
+
 
 # Explanation here: https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
 def rotate_bound(image, angle):
@@ -181,3 +235,12 @@ def rotate_bound(image, angle):
     M[1, 2] += (nH / 2) - cY
     # perform the actual rotation and return the image
     return cv.warpAffine(image, M, (nW, nH))
+
+
+# Finds the angle that the line segment connecting the two
+# points deviates from horizontal
+# Returned value is in degrees
+def angle_from_hor(p1, p2):
+    theta = math.atan((p2[1] - p1[1])/(p2[0] - p1[0]))
+    return np.rad2deg(theta)
+
