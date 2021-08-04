@@ -22,6 +22,7 @@ def get_meniscus(selected_frames):
         print(f'{frame_num + 1}/{total_frames}')
         print("Click the point at which the tongue intersects with the meniscus, then")
         print("Press 'SPACE' to continue, 'R' to redo, 'Q' to quit ")
+        print("Press '+' to zoom in. Press '-' to zoom out")
         frame = selected_frames[frame_num, :, :]
         coords, magnification = select_intersection(frame, magnification)
         print(coords)
