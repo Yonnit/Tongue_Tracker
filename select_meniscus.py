@@ -8,9 +8,9 @@ import sys
 # The inputted video must be a numpy array and can be black and white or color
 def get_meniscus(selected_frames):
     # selected_frames = np.load('./data_output/selected_frames.npy')
-
     meniscus_coords = []
     frame_num = 0
+    magnification = 1
     total_frames = np.shape(selected_frames)[0]
     print()
     print('===================')
@@ -23,7 +23,8 @@ def get_meniscus(selected_frames):
         print("Click the point at which the tongue intersects with the meniscus, then")
         print("Press 'SPACE' to continue, 'R' to redo, 'Q' to quit ")
         frame = selected_frames[frame_num, :, :]
-        coords = select_intersection(frame)
+        coords, magnification = select_intersection(frame, magnification)
+        print(coords)
         if coords != -1:
             meniscus_coords.append(coords)
             frame_num += 1
@@ -38,12 +39,12 @@ def get_meniscus(selected_frames):
 # If the user doesn't click, or wants to redo ('R'), the function returns -1
 # If the user presses Q or ESC, the program closes.
 # If the user clicks and presses SPACE, the coordinates are returned as tuples (x, y)
-def select_intersection(frame):
+def select_intersection(frame, magnification):
     class CoordinateStore:
-        def __init__(self):
+        def __init__(self, magnification):
             self.points = -1
             self.clicked = False
-            self.magnification = 1
+            self.magnification = magnification
 
         def select_point(self, event, x, y, flags, param):
             if event == cv.EVENT_LBUTTONDOWN and not self.clicked:
@@ -59,7 +60,7 @@ def select_intersection(frame):
                 self.magnification -= 1
 
     # instantiate class
-    coordinateStore1 = CoordinateStore()
+    coordinateStore1 = CoordinateStore(magnification)
 
     # Creates a copy of the image so the array isn't changed
     img = frame.copy()
@@ -80,10 +81,10 @@ def select_intersection(frame):
             sys.exit(-1)
         elif k == 32:  # SPACE
             cv.destroyAllWindows()
-            return coordinateStore1.points
+            return coordinateStore1.points, magnification
         elif k == ord('r'):  # R
             cv.destroyAllWindows()
-            return -1
+            return -1, magnification
         elif k == ord('='):
             coordinateStore1.zoom_in()
         elif (k == ord("-")) and coordinateStore1.magnification > 1:
