@@ -40,9 +40,11 @@ def main():
 
     tongue_lengths = analyse_data(tongue_pixels, segment_coords, tongue_max_frames)
 
-    process_data = {'zoomed_video_arr': zoomed_video_arr,
-                    'meniscus_coords': meniscus_coords,
-                    'segment_coords': segment_coords}
+    process_data = {}
+    if user_input['save_runtime']:
+        process_data = {'zoomed_video_arr': zoomed_video_arr,
+                        'meniscus_coords': meniscus_coords,
+                        'segment_coords': segment_coords}
     save_results(user_input, tongue_lengths, process_data)
     show_line(cleaned_bg_sub, False, segment_coords)
 
@@ -177,7 +179,8 @@ def get_user_input():
     parser.add_argument('-f', '--fps', required=True, type=int,
                         help='input the frames per second that the video was captured at')
     parser.add_argument('-o', '--output', help='path to output folder', default='./data_output/')
-    # parser.add_argument()
+    parser.add_argument('-r', '--save_runtime', default=False,
+                        help='saves runtime files so the exact session can be reproduced')
     args = vars(parser.parse_args())
     args['output'].strip(' ./')
     path = args['input'].strip(' ./')
