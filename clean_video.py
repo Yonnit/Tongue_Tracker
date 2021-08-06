@@ -37,8 +37,10 @@ def remove_distant_components(image):
     # the following part is just taking out the background which is also considered a component,
     # but most of the time we don't want that.
     sizes = stats[1:, -1];
+    # if np.size(sizes) == 0:  # If there are no components
+    #     return image
     centroids = centroids[1:].astype(int)
-    # nb_components = nb_components - 1
+    nb_components = nb_components - 1
 
     # minimum size of particles that go un-vetted, and are unquestionably either the tongue or meniscus.
     # They are kept and are what the dist_from_arr are based on.
