@@ -4,9 +4,10 @@ import sys
 
 # a = np.asarray([[0, 255],
 #                 [255, 0]], dtype=np.uint8)
-a = np.load('./data_output/line_vid_color.npy')
-a2 = np.load('./data_output/line_vid.npy')
-a3 = np.load('./data_output/line_vid_tongue.npy')
+path = './data_output/B2-S20__20210805_224343'
+a = np.load(f'{path}/bw_line.npy')
+a2 = np.load(f'{path}/color_line.npy')
+a3 = np.load(f'{path}/only_tongue_line.npy')
 # frame_num = 413
 # a2 = a2[frame_num]
 #
@@ -14,7 +15,7 @@ a3 = np.load('./data_output/line_vid_tongue.npy')
 print(a)
 ignore, y_dim, x_dim, px_value = np.asarray(np.shape(a))
 magnification = 1
-frame_num = 412
+frame_num = 682
 while True:
     print(frame_num)
     dim = (x_dim * magnification, y_dim * magnification)

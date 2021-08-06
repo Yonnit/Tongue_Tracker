@@ -15,9 +15,9 @@ from output_functions import save_results
 
 
 def main():
-    # zoomed_video_arr = np.load('./data_output/cropped_video.npy')
-    # meniscus_coords = np.load('./data_output/meniscus_coords.npy')
-    # segment_coords = np.load('./data_output/segment_coords.npy')
+    # zoomed_video_arr = np.load('./data_output/B2-S20__20210805_220313/zoomed_video_arr.npy')
+    # meniscus_coords = np.load('./data_output/B2-S20__20210805_220313/meniscus_coords.npy')
+    # segment_coords = np.load('./data_output/B2-S20__20210805_220313/segment_coords.npy')
 
     user_input = get_user_input()
     zoomed_video_arr = get_tube(user_input['input'])
@@ -42,13 +42,17 @@ def main():
 
     process_data = {}
     if user_input['save_runtime']:
+        bw_line = show_line(mog_bg_sub, False, segment_coords)
+        color_line = show_line(zoomed_video_arr, True, segment_coords)
+        only_tongue_line = show_line(tongue_pixels, False, segment_coords)
         process_data = {'zoomed_video_arr': zoomed_video_arr,
                         'meniscus_coords': meniscus_coords,
-                        'segment_coords': segment_coords}
+                        'segment_coords': segment_coords,
+                        'clean_bg_sub': cleaned_bg_sub,
+                        'bw_line': bw_line,
+                        'color_line': color_line,
+                        'only_tongue_line': only_tongue_line}
     save_results(user_input, tongue_lengths, process_data)
-    show_line(cleaned_bg_sub, False, segment_coords)
-
-    # analyse_video(cleaned_bg_sub)
 
 
 def update_meniscus_position(meniscus_coords_arr, update_position_frame, total_frame_count):
@@ -64,6 +68,7 @@ def update_meniscus_position(meniscus_coords_arr, update_position_frame, total_f
 
 
 def show_line(video_arr, is_color, segment_coords):
+    save_arr = []
     if is_color:
         color = (0, 255, 0)
         (frame_height, frame_width, rgb_intensities) = video_arr[0].shape
@@ -75,7 +80,8 @@ def show_line(video_arr, is_color, segment_coords):
         color = (0, 255, 0)
         thickness = 2
         img = frame.copy()
-        img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
+        if not is_color:
+            img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
         frame_segments = segment_coords[frame_num]
         point_a = (int(frame_segments[0, 0]), int(frame_segments[1, 0]))
         point_b = (int(frame_segments[0, 1]), int(frame_segments[1, 1]))
@@ -84,15 +90,17 @@ def show_line(video_arr, is_color, segment_coords):
         cv.line(img, point_b, point_c, color, thickness)
 
         y_dim, x_dim, color_values = np.asarray(np.shape(img))
-        magnification = 3
-        dim = (x_dim * magnification, y_dim * magnification)
-        img = cv.resize(img, dim, interpolation=cv.INTER_NEAREST)
+        # magnification = 3
+        # dim = (x_dim * magnification, y_dim * magnification)
+        # img = cv.resize(img, dim, interpolation=cv.INTER_NEAREST)
 
-        cv.imshow('frame', img)
-        key = cv.waitKey(100)  # waits 8ms between frames
-        if key == 27:  # if ESC is pressed, exit loop
-            break
+        save_arr.append(img)
+        # cv.imshow('frame', img)
+        # key = cv.waitKey(100)  # waits 8ms between frames
+        # if key == 27:  # if ESC is pressed, exit loop
+        #     break
     cv.destroyAllWindows()
+    return save_arr
 
 
 def view_video(video_arr, is_color, *args):
@@ -134,7 +142,7 @@ def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
     if algo == 'KNN':
         back_sub = cv.createBackgroundSubtractorKNN(detectShadows=False)
     else:
-        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=40)  # Raise threshold & history?
+        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=30)  # Raise threshold & history?
     bg_subbed_vid_arr = []
     print("Beginning Calibration")
     for frame in input_video_arr:
