@@ -11,6 +11,7 @@ from tongue_functions import find_tongue_end
 from select_meniscus import get_meniscus
 from data_analysis import analyse_data
 from regression import piecewise_linear
+from output_functions import save_results
 
 
 def main():
@@ -37,7 +38,12 @@ def main():
     tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
     segment_coords = piecewise_linear(tongue_pixels)
 
-    analyse_data(tongue_pixels, segment_coords, tongue_max_frames, user_input)
+    tongue_lengths = analyse_data(tongue_pixels, segment_coords, tongue_max_frames)
+
+    process_data = {'zoomed_video_arr': zoomed_video_arr,
+                    'meniscus_coords': meniscus_coords,
+                    'segment_coords': segment_coords}
+    save_results(user_input, tongue_lengths, process_data)
     show_line(cleaned_bg_sub, False, segment_coords)
 
     # analyse_video(cleaned_bg_sub)
@@ -180,6 +186,7 @@ def get_user_input():
         sys.exit(-1)
     args['input'] = path
     return args
+
 
 # makes main() a main function similar to Java, C, C++
 if __name__ == '__main__':
