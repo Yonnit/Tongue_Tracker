@@ -4,10 +4,10 @@ import cv2 as cv
 
 
 # https://stackoverflow.com/questions/42798659/how-to-remove-small-connected-objects-using-opencv
-def main():
+def main(n):
 
     video = np.load('./data_output/mog_bg_sub.npy')
-    frame = video[447]
+    frame = video[n]
 
 
     # find all your connected components (white blobs in your image)
@@ -16,6 +16,7 @@ def main():
     # the following part is just taking out the background which is also considered a component,
     # but most of the time we don't want that.
     sizes = stats[1:, -1];
+    centroids = centroids[1:].astype(int)
     nb_components = nb_components - 1
 
     # minimum size of particles we want to keep (number of pixels)
@@ -29,7 +30,11 @@ def main():
             cleaned[output == i + 1] = 255
 
     inverted = cv.bitwise_not(cleaned)
-    inv_clean = cv.distanceTransform(inverted, cv.DIST_C, cv.DIST_MASK_PRECISE)
+    dist_from_arr = cv.distanceTransform(inverted, cv.DIST_C, cv.DIST_MASK_PRECISE)
+
+    for i, centroid in enumerate(centroids):
+        if dist_from_arr[centroid[1], centroid[0]] < 10:
+            cleaned[output == i + 1] = 255
 
     cv.imshow('inverted', inverted)
     cv.imshow('frame', frame)
@@ -39,4 +44,5 @@ def main():
         pass
 
 if __name__ == '__main__':
-    main()
+    for j in range(500):
+        main(j)
