@@ -38,7 +38,6 @@ def remove_distant_components(image):
     # if np.size(sizes) == 0:  # If there are no components
     #     return image
     centroids = centroids[1:].astype(int)
-    # output = output[1:]
     nb_components = nb_components - 1
 
     # minimum size of particles that go un-vetted, and are unquestionably either the tongue or meniscus.
@@ -56,9 +55,14 @@ def remove_distant_components(image):
     inverted = cv.bitwise_not(cleaned)
     dist_from_arr = cv.distanceTransform(inverted, cv.DIST_C, cv.DIST_MASK_PRECISE)
 
-    # Puts components that are close enough to the tongue/meniscus back into the cleaned picture
-    for i, centroid in enumerate(centroids):
-        if dist_from_arr[centroid[1], centroid[0]] < 10:
+    # # Puts components that are close enough to the tongue/meniscus back into the cleaned picture
+    # for i, centroid in enumerate(centroids):
+    #     if dist_from_arr[centroid[1], centroid[0]] < 10:
+    #         cleaned[output == i + 1] = 255
+
+    for i in range(2, nb_components):  #
+        min_distance = np.amin(dist_from_arr[output == i + 1])
+        if min_distance < 20:  # TODO: Change distance from being hardcoded to scale from cm per px
             cleaned[output == i + 1] = 255
 
     return cleaned
