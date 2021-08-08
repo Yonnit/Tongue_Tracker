@@ -29,10 +29,19 @@ def video_player(starting_frame, *args):
         key = cv.waitKey(0) & 0xFF
         if key == 27 or key == ord("q"):  # If the user presses Q or ESC
             break
+        # elif key in {ord('k'), 32}:  # key is 'SPACE' or 'k'
+        #     if ms_per_frame == 0:
+        #         ms_per_frame = 8
+        #     else:
+        #         ms_per_frame = 0
         elif key == ord('j'):
             frame_num -= 1
         elif key == ord('l'):
             frame_num += 1
+        elif key == ord('h'):
+            frame_num -= 2
+        elif key == ord(';'):
+            frame_num += 2
         elif key in {ord('='), ord("+")}:
             magnification += 1
         elif (key == ord("-")) and magnification > 1:
