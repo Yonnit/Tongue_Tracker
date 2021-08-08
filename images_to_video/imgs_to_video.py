@@ -13,9 +13,9 @@ import os
 # dir_path = '.' + args['file']
 # ext = args['extension']
 # output = args['output']
-dir_path = "Export_20171117_025430_PM"
+dir_path = "Export_20171116_033705_PM"
 ext = "bmp"
-output = "vid_from_imgs.avi"
+output = f"{dir_path}.avi"
 
 images = []
 print(dir_path)
