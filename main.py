@@ -31,8 +31,9 @@ def main():
     tongue_max_frames = find_peaks(tongue_maxes, distance=30)[0]
     print('Number of maximums=', len(tongue_max_frames))
     selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
+    selected_color = zoomed_video_arr[tongue_max_frames, :, :]
 
-    meniscus_coords = get_meniscus(selected_frames)
+    meniscus_coords = get_meniscus(selected_frames, selected_color)
 
     meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
     tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
@@ -142,7 +143,7 @@ def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
     if algo == 'KNN':
         back_sub = cv.createBackgroundSubtractorKNN(detectShadows=False)
     else:
-        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=30)  # Raise threshold & history?
+        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=20)  # Raise threshold & history?
     bg_subbed_vid_arr = []
     print("Beginning Calibration")
     for frame in input_video_arr:
