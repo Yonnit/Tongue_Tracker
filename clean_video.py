@@ -10,13 +10,11 @@ import cv2 as cv
 
 # For testing purposes
 def main():
-    video = np.load('./data_output/mog_bg_sub.npy')
-    frame = video[447]
-    cleaned = remove_isolated_pixels(frame)
-    cv.imshow('frame', frame)
-    cv.imshow('clean_frame', cleaned)
-    while cv.waitKey(0) != 27:
-        pass
+    from multi_video_player import video_player
+    start_frame = 0
+    video = np.load('./data_output/B2-S20__20210805_220313/mog_bg_sub.npy')[733:]
+    cleaned = clean_bg_sub(video)
+    video_player(start_frame, video, cleaned)
 
 
 # Takes a black and white video array.
@@ -40,6 +38,7 @@ def remove_distant_components(image):
     # if np.size(sizes) == 0:  # If there are no components
     #     return image
     centroids = centroids[1:].astype(int)
+    # output = output[1:]
     nb_components = nb_components - 1
 
     # minimum size of particles that go un-vetted, and are unquestionably either the tongue or meniscus.
