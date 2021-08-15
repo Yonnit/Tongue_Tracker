@@ -1,13 +1,14 @@
 import numpy as np
 
 
-def analyse_data(tongue_pixels, segment_coords, tongue_max_frames):
+def analyse_data(user_input, segment_coords, tongue_max_frames):
     num_frames = np.shape(segment_coords)[0]
     frame_num = np.arange(1, num_frames + 1)
+    time_in_ms = (frame_num - 1) * user_input['fps']**-1 * 1000
     tongue_lengths = lengths(segment_coords)
     is_max = np.full(num_frames, False)
     is_max[tongue_max_frames] = True
-    output_arr = np.column_stack((frame_num, tongue_lengths, is_max))
+    output_arr = np.column_stack((frame_num, time_in_ms, tongue_lengths, is_max))
     return output_arr
 
 
