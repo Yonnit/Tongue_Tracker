@@ -2,8 +2,13 @@ import numpy as np
 
 
 def analyse_data(tongue_pixels, segment_coords, tongue_max_frames):
+    num_frames = np.shape(segment_coords)[0]
+    frame_num = np.arange(1, num_frames + 1)
     tongue_lengths = lengths(segment_coords)
-    return tongue_lengths
+    is_max = np.full(num_frames, False)
+    is_max[tongue_max_frames] = True
+    output_arr = np.column_stack((frame_num, tongue_lengths, is_max))
+    return output_arr
 
 
 def lengths(segment_coords):
