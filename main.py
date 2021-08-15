@@ -25,10 +25,13 @@ def main():
     # bg_sub_array = background_subtract(zoomed_video_arr)
     mog_bg_sub = background_subtract(zoomed_video_arr, algo='MOG2', learning_rate=0)
     cleaned_bg_sub = clean_bg_sub(mog_bg_sub)
+    from multi_video_player import video_player
+    video_player(0, mog_bg_sub, cleaned_bg_sub, zoomed_video_arr)
 
     tongue_maxes = find_tongue_end(cleaned_bg_sub)
-    # TODO: make distance scale by camera frame rate
-    tongue_max_frames = find_peaks(tongue_maxes, distance=30)[0]
+    # 20 licks per second is right above the max hummingbird feeding speed, therefore FPS/20 (setting upper bounds)
+    tongue_max_frames = find_peaks(tongue_maxes, distance=user_input['fps'] / 20)[0]
+    print(f"distance = {user_input['fps'] / 20}")
     print('Number of maximums=', len(tongue_max_frames))
     selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
     selected_color = zoomed_video_arr[tongue_max_frames, :, :]
@@ -39,7 +42,7 @@ def main():
     tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
     segment_coords = piecewise_linear(tongue_pixels)
 
-    tongue_lengths = analyse_data(tongue_pixels, segment_coords, tongue_max_frames)
+    tongue_lengths = analyse_data(user_input, segment_coords, tongue_max_frames)
 
     process_data = {}
     if user_input['save_runtime']:
@@ -143,7 +146,7 @@ def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
     if algo == 'KNN':
         back_sub = cv.createBackgroundSubtractorKNN(detectShadows=False)
     else:
-        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=20)  # Raise threshold & history?
+        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=30)  # Raise threshold & history?
     bg_subbed_vid_arr = []
     print("Beginning Calibration")
     for frame in input_video_arr:
@@ -343,7 +346,6 @@ if __name__ == '__main__':
 #     cv.destroyAllWindows()
 #     line_video_arr = np.asarray(line_video_arr)
 #     return line_video_arr
-
 
 
 # def find_meniscus_pos(mode_vertical):
