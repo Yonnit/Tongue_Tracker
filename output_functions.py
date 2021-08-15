@@ -10,6 +10,9 @@ def save_results(user_input, tongue_lengths, process_data):
 
     save_txt(tongue_lengths, directory_path, input_file_name, 'tongue_lengths')
     save_process(directory_path, **process_data)
+    print()
+    print(f"Data Successfully saved to '{directory_path}'")
+    print("Closing Program")
 
 
 def make_directory(path, input_file_name):
