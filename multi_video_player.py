@@ -8,7 +8,7 @@ def main():
     a = np.load(f'{path}/bw_line.npy')
     a2 = np.load(f'{path}/color_line.npy')
     a3 = np.load(f'{path}/only_tongue_line.npy')
-    video_player(682, a, a2, a3)
+    video_player(0, a, a2, a3)
 
 
 def video_player(starting_frame, *args):
@@ -17,10 +17,11 @@ def video_player(starting_frame, *args):
     except ValueError:
         total_frames, y_dim, x_dim = np.asarray(np.shape(args[1]))  # For single channel images (black and white)
 
-    print(f'Starting on frame {starting_frame} of {total_frames}')
+    print(f'Starting on frame {starting_frame} of {total_frames} total frames')
     magnification = 1
     frame_num = starting_frame
     while True:
+        frame_num = frame_num % total_frames
         print(frame_num)
         dim = (x_dim * magnification, y_dim * magnification)
         for i, video in enumerate(args):
@@ -28,6 +29,9 @@ def video_player(starting_frame, *args):
             cv.imshow(f'video_{i}', frame)
         key = cv.waitKey(0) & 0xFF
         if key == 27 or key == ord("q"):  # If the user presses Q or ESC
+            cv.destroyAllWindows()
+            sys.exit(-1)
+        elif key == ord(" "):
             break
         # elif key in {ord('k'), 32}:  # key is 'SPACE' or 'k'
         #     if ms_per_frame == 0:
@@ -47,7 +51,6 @@ def video_player(starting_frame, *args):
         elif (key == ord("-")) and magnification > 1:
             magnification -= 1
     cv.destroyAllWindows()
-    sys.exit(-1)
 
 
 if __name__ == '__main__':
