@@ -22,11 +22,10 @@ def main():
     user_input = get_user_input()
     zoomed_video_arr = get_tube(user_input['input'])
 
-    # bg_sub_array = background_subtract(zoomed_video_arr)
-    mog_bg_sub = background_subtract(zoomed_video_arr, algo='MOG2', learning_rate=0)
-    cleaned_bg_sub = clean_bg_sub(mog_bg_sub)
+    bg_sub = background_subtract(zoomed_video_arr)
+    cleaned_bg_sub = clean_bg_sub(bg_sub)
     from multi_video_player import video_player
-    video_player(0, mog_bg_sub, cleaned_bg_sub, zoomed_video_arr)
+    video_player(0, bg_sub, cleaned_bg_sub, zoomed_video_arr)
 
     tongue_maxes = find_tongue_end(cleaned_bg_sub)
     # 20 licks per second is right above the max hummingbird feeding speed, therefore FPS/20 (setting upper bounds)
@@ -46,7 +45,7 @@ def main():
 
     process_data = {}
     if user_input['save_runtime']:
-        bw_line = show_line(mog_bg_sub, False, segment_coords)
+        bw_line = show_line(bg_sub, False, segment_coords)
         color_line = show_line(zoomed_video_arr, True, segment_coords)
         only_tongue_line = show_line(tongue_pixels, False, segment_coords)
         process_data = {'zoomed_video_arr': zoomed_video_arr,
@@ -144,9 +143,11 @@ def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
     # print(f'Total number of frames: {total_frame_count}')
     print('Starting Background Subtract')
     if algo == 'KNN':
-        back_sub = cv.createBackgroundSubtractorKNN(detectShadows=False)
+        back_sub = cv.createBackgroundSubtractorKNN(dist2Threshold=100, detectShadows=False)
+    elif algo == 'MOG2':
+        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=20)  # Raise threshold & history?
     else:
-        back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=30)  # Raise threshold & history?
+        raise ValueError("Unknown background subtract method")
     bg_subbed_vid_arr = []
     print("Beginning Calibration")
     for frame in input_video_arr:
