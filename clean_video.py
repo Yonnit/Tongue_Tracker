@@ -22,8 +22,8 @@ def main():
 def clean_bg_sub(video_array):
     cleaned = []
     for frame in video_array:
-        no_isolated = remove_isolated_pixels(frame)
-        cleaned_frame = remove_distant_components(no_isolated)
+        # no_isolated = remove_isolated_pixels(frame)
+        cleaned_frame = remove_distant_components(frame)
         cleaned.append(cleaned_frame)
     return np.asarray(cleaned)
 
@@ -42,7 +42,7 @@ def remove_distant_components(image):
 
     # minimum size of particles that go un-vetted, and are unquestionably either the tongue or meniscus.
     # They are kept and are what the dist_from_arr are based on.
-    min_size = np.mean(sizes)  # Might what to make it mean / 2
+    min_size = 100
 
     # your answer image
     cleaned = np.zeros(output.shape, dtype=np.uint8)
