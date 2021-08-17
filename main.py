@@ -86,7 +86,15 @@ def show_line(video_arr, is_color, segment_coords):
         if not is_color:
             img = cv.cvtColor(img, cv.COLOR_GRAY2BGR)
         frame_segments = segment_coords[frame_num]
-        point_a = (int(frame_segments[0, 0]), int(frame_segments[1, 0]))
+        try:
+            point_a = (int(frame_segments[0, 0]), int(frame_segments[1, 0]))
+        except ValueError:
+            print("********")
+            print(f'frame_num:{frame_num}')
+            print(f'x_a:{frame_segments[0, 0]}')
+            print(f'x_a:{frame_segments[1, 0]}')
+            print("********")
+            point_a = (-1, -1)
         point_b = (int(frame_segments[0, 1]), int(frame_segments[1, 1]))
         point_c = (int(frame_segments[0, 2]), int(frame_segments[1, 2]))
         cv.line(img, point_a, point_b, color, thickness)
