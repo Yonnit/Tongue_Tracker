@@ -15,9 +15,9 @@ from output_functions import save_results
 
 
 def main():
-    # zoomed_video_arr = np.load('./data_output/B2-S20__20210805_220313/zoomed_video_arr.npy')
-    # meniscus_coords = np.load('./data_output/B2-S20__20210805_220313/meniscus_coords.npy')
-    # segment_coords = np.load('./data_output/B2-S20__20210805_220313/segment_coords.npy')
+    # zoomed_video_arr = np.load('./data_output/B1-S60_FULL__20210816_202626/zoomed_video_arr.npy')
+    # meniscus_coords = np.load('./data_output/B1-S60_FULL__20210816_202626/meniscus_coords.npy')
+    # segment_coords = np.load('./data_output/B1-S60_FULL__20210816_202626/segment_coords.npy')
 
     user_input = get_user_input()
     zoomed_video_arr = get_tube(user_input['input'])
@@ -149,10 +149,10 @@ def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
     else:
         raise ValueError("Unknown background subtract method")
     bg_subbed_vid_arr = []
-    print("Beginning Calibration")
-    for frame in input_video_arr:
-        back_sub.apply(frame, learningRate=learning_rate)
-    print("Done with Calibration")
+    # print("Beginning Calibration")
+    # for frame in input_video_arr:
+    #     back_sub.apply(frame, learningRate=learning_rate)
+    # print("Done with Calibration")
     for frame in input_video_arr:
         foreground_mask = back_sub.apply(frame, learningRate=learning_rate)
         bg_subbed_vid_arr.append(foreground_mask)
