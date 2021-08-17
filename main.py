@@ -23,6 +23,12 @@ def main():
     zoomed_video_arr = get_tube(user_input['input'])
 
     bg_sub = background_subtract(zoomed_video_arr)
+
+    start = 557 - 1  # start frame from
+    end = 935
+    zoomed_video_arr = zoomed_video_arr[start:end, :, :]
+    bg_sub = bg_sub[start:end, :, :]
+
     cleaned_bg_sub = clean_bg_sub(bg_sub)
     from multi_video_player import video_player
     video_player(0, bg_sub, cleaned_bg_sub, zoomed_video_arr)

@@ -4,7 +4,7 @@ import sys
 
 
 def main():
-    path = './data_output/B2-S20__20210805_224343'
+    path = './data_output/B1-S60_FULL__20210816_212302'
     a = np.load(f'{path}/bw_line.npy')
     a2 = np.load(f'{path}/color_line.npy')
     a3 = np.load(f'{path}/only_tongue_line.npy')
