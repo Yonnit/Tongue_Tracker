@@ -4,11 +4,12 @@ import sys
 
 
 def main():
-    path = './data_output/B1-S60_FULL__20210816_212302'
+    path = './data_output/B2-S60__20210818_174853'
     a = np.load(f'{path}/bw_line.npy')
     a2 = np.load(f'{path}/color_line.npy')
     a3 = np.load(f'{path}/only_tongue_line.npy')
-    video_player(0, a, a2, a3)
+    a4 = np.load(f'{path}/zoomed_video_arr.npy')
+    video_player(0, a, a2, a3, a4)
 
 
 def video_player(starting_frame, *args):
