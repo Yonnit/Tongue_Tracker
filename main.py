@@ -24,8 +24,8 @@ def main():
 
     bg_sub = background_subtract(zoomed_video_arr)
 
-    start = 557 - 1  # start frame from
-    end = 935
+    start = 2338 - 1  # start frame from
+    end = 2681
     zoomed_video_arr = zoomed_video_arr[start:end, :, :]
     bg_sub = bg_sub[start:end, :, :]
 
