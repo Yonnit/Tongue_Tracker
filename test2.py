@@ -1,53 +1,94 @@
 import numpy as np
 import cv2 as cv
 import sys
+import matplotlib.pyplot as plt
 
 
 def main():
-    a = np.load('./data_output/num_vert.npy')
-    # a = a[377]
-    a = np.zeros(300)
-    a[0:50] = 1
-    a[100:140] = 1
-    ans = contiguous_above_thresh(a, 30)
-    print(ans)
+    file = np.genfromtxt('./data_output/B1-S40__20210818_145548/B1-S40__tongue_lengths.csv', delimiter=',')
+    tf = file[:, 3]
+    tf = tf.astype(np.bool)
+    a = file[tf]
+
+    print(a)
+    # my_frame_num = file[:, 0]
+    # my_submersion = file[:, 2]
+    # manual_frame_num = file[:, 4]
+    # manual_submersion = file[:, 5]
+    # my_frame_num = my_frame_num + manual_frame_num[0] - 1
+    # #
+    # # fig, ax = plt.subplots()
+    # # ax.plot = (my_frame_num, my_submersion)
+    # # # ax.plot = (manual_frame_num, manual_submersion)
+    # # ax.set(xlabel='frame number (f)', ylabel='pixels (px)',
+    # #        title='Compare Manual vs Automatic')
+    # # ax.grid()
+    # # plt.show()
+    #
+    # # Data for plotting
+    # t = my_frame_num
+    # s = my_submersion
+    #
+    # fig, ax = plt.subplots()
+    # ax.plot(t, s)
+    # ax.plot(manual_frame_num, manual_submersion)
+    #
+    # ax.set(xlabel='time (s)', ylabel='voltage (mV)',
+    #        title='About as simple as it gets, folks')
+    # ax.grid()
+    #
+    # # fig.savefig("test.png")
+    # plt.show()
 
 
-# Takes black and white vector as input and returns the first frame that
-# is above a certain intensity for a certain number of pixels as defined
-# by segment
-def contiguous_above_thresh(row, min_seg_length, threshold=1):
-    condition = row >= threshold  # Creates array of boolean values (True = above threshold)
-    for start, stop in reversed(contiguous_regions(condition)):
-        segment = row[start:stop]
-        if len(segment) > min_seg_length:
-            return stop
-    return -1  # There were no segments longer than the minimum length with greater intensity than threshold
 
 
-# Finds contiguous True regions of the boolean array "condition". Returns
-# a 2D array where the first column is the start index of the region and the
-# second column is the end index.
-def contiguous_regions(condition):
-    # Find the indices of changes in "condition"
-    d = np.diff(condition)
-    idx, = d.nonzero()
 
-    # We need to start things after the change in "condition". Therefore,
-    # we'll shift the index by 1 to the right.
-    idx += 1
-
-    if condition[0]:
-        # If the start of condition is True prepend a 0
-        idx = np.r_[0, idx]
-
-    if condition[-1]:
-        # If the end of condition is True, append the length of the array
-        idx = np.r_[idx, condition.size]  # Edit
-
-    # Reshape the result into two columns
-    idx.shape = (-1, 2)
-    return idx
+# def main():
+#     a = np.load('./data_output/num_vert.npy')
+#     # a = a[377]
+#     a = np.zeros(300)
+#     a[0:50] = 1
+#     a[100:140] = 1
+#     ans = contiguous_above_thresh(a, 30)
+#     print(ans)
+#
+#
+# # Takes black and white vector as input and returns the first frame that
+# # is above a certain intensity for a certain number of pixels as defined
+# # by segment
+# def contiguous_above_thresh(row, min_seg_length, threshold=1):
+#     condition = row >= threshold  # Creates array of boolean values (True = above threshold)
+#     for start, stop in reversed(contiguous_regions(condition)):
+#         segment = row[start:stop]
+#         if len(segment) > min_seg_length:
+#             return stop
+#     return -1  # There were no segments longer than the minimum length with greater intensity than threshold
+#
+#
+# # Finds contiguous True regions of the boolean array "condition". Returns
+# # a 2D array where the first column is the start index of the region and the
+# # second column is the end index.
+# def contiguous_regions(condition):
+#     # Find the indices of changes in "condition"
+#     d = np.diff(condition)
+#     idx, = d.nonzero()
+#
+#     # We need to start things after the change in "condition". Therefore,
+#     # we'll shift the index by 1 to the right.
+#     idx += 1
+#
+#     if condition[0]:
+#         # If the start of condition is True prepend a 0
+#         idx = np.r_[0, idx]
+#
+#     if condition[-1]:
+#         # If the end of condition is True, append the length of the array
+#         idx = np.r_[idx, condition.size]  # Edit
+#
+#     # Reshape the result into two columns
+#     idx.shape = (-1, 2)
+#     return idx
 
 
 # def main():
