@@ -13,7 +13,7 @@ import os
 # dir_path = '.' + args['file']
 # ext = args['extension']
 # output = args['output']
-dir_path = "Export_20171116_033705_PM"
+dir_path = "Export_20171208_044735_PM"
 ext = "bmp"
 output = f"{dir_path}.avi"
 
