@@ -28,7 +28,26 @@ def segment_length(x1, x2, y1, y2):
     return np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
 
+# For testing
+# Throws IndexError if array isn't at least 3D (More or less = problems)
+def main():
+    from scipy.spatial import distance
+    # a = np.load('./data_output/segment_coords.npy')
+    a = np.arange(20, step=2).reshape(1, 5, 2)
+    b = np.diff(a, axis=1)**2
 
+    distance.cdist()
+    # np.add.reduceat(np.arange(8), [0, 4, 1, 5, 2, 6, 3, 7])[::2]
+    # a = np.dsplit(a, depth)
+    # for point in
+
+    # tongue_lengths = lengths(a)
+    # print(np.shape(tongue_lengths))
+    print()
+
+
+if __name__ == '__main__':
+    main()
 
 
 # import numpy as np
