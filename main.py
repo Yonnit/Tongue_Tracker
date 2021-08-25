@@ -11,7 +11,7 @@ from tongue_functions import find_tongue_end
 from select_meniscus import get_meniscus
 from data_analysis import analyse_data
 from regression import piecewise_linear
-from output_functions import save_results
+from output_functions import save_results, mkdir_from_input
 
 
 def main():
@@ -20,9 +20,13 @@ def main():
     # segment_coords = np.load('./data_output/B1-S60_FULL__20210816_202626/segment_coords.npy')
 
     user_input = get_user_input()
+    directory_path = mkdir_from_input(user_input)
+
     zoomed_video_arr = get_tube(user_input['input'])
+    np.save(os.path.join(directory_path, 'zoomed_video_arr'), zoomed_video_arr)
 
     bg_sub = background_subtract(zoomed_video_arr)
+    np.save(os.path.join(directory_path, 'bg_sub'), bg_sub)
 
     start = 2338 - 1  # start frame from
     end = 2681
@@ -30,12 +34,15 @@ def main():
     bg_sub = bg_sub[start:end, :, :]
 
     cleaned_bg_sub = clean_bg_sub(bg_sub)
+    np.save(os.path.join(directory_path, 'cleaned_bg_sub'), cleaned_bg_sub)
+
     from multi_video_player import video_player
     video_player(0, bg_sub, cleaned_bg_sub, zoomed_video_arr)
 
     tongue_maxes = find_tongue_end(cleaned_bg_sub)
     # 20 licks per second is right above the max hummingbird feeding speed, therefore FPS/20 (setting upper bounds)
     tongue_max_frames = find_peaks(tongue_maxes, distance=user_input['fps'] / 20)[0]
+    np.save(os.path.join(directory_path, 'tongue_max_frames'), tongue_max_frames)
     print(f"distance = {user_input['fps'] / 20}")
     print('Number of maximums=', len(tongue_max_frames))
     selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
@@ -44,24 +51,19 @@ def main():
     meniscus_coords = get_meniscus(selected_frames, selected_color)
 
     meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
+    np.save(os.path.join(directory_path, 'meniscus_arr'), meniscus_arr)
+
     tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
     segment_coords = piecewise_linear(tongue_pixels)
+    np.save(os.path.join(directory_path, 'segment_coords'), segment_coords)
 
-    tongue_lengths = analyse_data(user_input, segment_coords, tongue_max_frames)
+    tongue_lengths, just_maxes = analyse_data(user_input, tongue_max_frames, segment_coords, meniscus_arr)
 
-    process_data = {}
-    if user_input['save_runtime']:
-        bw_line = show_line(bg_sub, False, segment_coords)
-        color_line = show_line(zoomed_video_arr, True, segment_coords)
-        only_tongue_line = show_line(tongue_pixels, False, segment_coords)
-        process_data = {'zoomed_video_arr': zoomed_video_arr,
-                        'meniscus_coords': meniscus_coords,
-                        'segment_coords': segment_coords,
-                        'clean_bg_sub': cleaned_bg_sub,
-                        'bw_line': bw_line,
-                        'color_line': color_line,
-                        'only_tongue_line': only_tongue_line}
-    save_results(user_input, tongue_lengths, process_data)
+    show_line(bg_sub, False, segment_coords, os.path.join(directory_path, 'line_bw'))
+    show_line(zoomed_video_arr, True, segment_coords, os.path.join(directory_path, 'line_color'))
+    show_line(tongue_pixels, False, segment_coords, os.path.join(directory_path, 'line_only_tongue'))
+
+    save_results(user_input, directory_path, tongue_lengths, just_maxes)
 
 
 def update_meniscus_position(meniscus_coords_arr, update_position_frame, total_frame_count):
@@ -76,7 +78,9 @@ def update_meniscus_position(meniscus_coords_arr, update_position_frame, total_f
     return meniscus
 
 
-def show_line(video_arr, is_color, segment_coords):
+# Displays the video with the line added on top. Returns a numpy array of the video with the line.
+# Optionally saves the video to the output_file_path.
+def show_line(video_arr, is_color, segment_coords, output_file_path=None):
     save_arr = []
     if is_color:
         color = (0, 255, 0)
@@ -117,33 +121,9 @@ def show_line(video_arr, is_color, segment_coords):
         # if key == 27:  # if ESC is pressed, exit loop
         #     break
     cv.destroyAllWindows()
+    if output_file_path is not None:
+        np.save(output_file_path, save_arr)
     return save_arr
-
-
-def view_video(video_arr, is_color, *args):
-    if is_color:
-        color = (0, 255, 0)
-        (frame_height, frame_width, rgb_intensities) = video_arr[0].shape
-    else:
-        color = (255, 255, 255)
-        (frame_height, frame_width) = video_arr[0].shape
-
-    line_video_arr = []
-    frame_num = 0
-    for frame in video_arr:
-        # print(frame_num)
-        video_num = 0
-        for video in args:
-            cv.imshow(f'video{video_num}', video[frame_num])
-        cv.imshow('frame', frame)
-        line_video_arr.append(frame)
-        key = cv.waitKey(20)  # waits 8ms between frames
-        if key == 27:  # if ESC is pressed, exit loop
-            break
-        frame_num += 1
-    cv.destroyAllWindows()
-    line_video_arr = np.asarray(line_video_arr)
-    return line_video_arr
 
 
 # TODO: allow user to set --algo to switch between MOG2 and KNN
@@ -206,8 +186,8 @@ def get_user_input():
     parser.add_argument('-f', '--fps', required=True, type=int,
                         help='input the frames per second that the video was captured at')
     parser.add_argument('-o', '--output', help='path to output folder', default='./data_output/')
-    parser.add_argument('-r', '--save_runtime', default=False,
-                        help='saves runtime files so the exact session can be reproduced')
+    # parser.add_argument('-r', '--save_runtime', default=False,
+    #                     help='saves runtime files so the exact session can be reproduced')
     args = vars(parser.parse_args())
     args['output'].strip(' ./')
     path = args['input'].strip(' ./')
@@ -263,6 +243,32 @@ if __name__ == '__main__':
 
 ##########################################################################################
 # Junkyard
+
+
+# def view_video(video_arr, is_color, *args):
+#     if is_color:
+#         color = (0, 255, 0)
+#         (frame_height, frame_width, rgb_intensities) = video_arr[0].shape
+#     else:
+#         color = (255, 255, 255)
+#         (frame_height, frame_width) = video_arr[0].shape
+#
+#     line_video_arr = []
+#     frame_num = 0
+#     for frame in video_arr:
+#         # print(frame_num)
+#         video_num = 0
+#         for video in args:
+#             cv.imshow(f'video{video_num}', video[frame_num])
+#         cv.imshow('frame', frame)
+#         line_video_arr.append(frame)
+#         key = cv.waitKey(20)  # waits 8ms between frames
+#         if key == 27:  # if ESC is pressed, exit loop
+#             break
+#         frame_num += 1
+#     cv.destroyAllWindows()
+#     line_video_arr = np.asarray(line_video_arr)
+#     return line_video_arr
 
 
 # def show_both_loc(tongue_xy_coords, video_to_compare_arr, meniscus_xy_coords):
