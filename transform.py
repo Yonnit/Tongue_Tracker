@@ -10,7 +10,6 @@ import cv2
 # pts are the coordinates selected by the user
 # Re-orders the points so that each corner clicked populates the
 # same vertical index of the coordinate array, which is then returned
-# TODO: you might be able to rotate/flip the box by switching which coordinates go where
 def order_points(pts):
     # Initialize a 4x2 array to be populated with coords
     # 0 = top left, 1 = top right, 2, = bottom right, 3 = bottom left

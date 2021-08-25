@@ -7,7 +7,7 @@ from transform import get_four_point_transform, apply_four_point_transform
 
 
 # Gets tube corners and returns video array zoomed in on the tube
-def get_tube(file_path):  # TODO: make filepath user inputted
+def get_tube(file_path):
     first_frame = grab_first_frame(file_path)
     cropped_frame, roi = select_roi(first_frame)
     while True:
