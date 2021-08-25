@@ -94,7 +94,7 @@ if __name__ == '__main__':
 #     return meniscus
 #
 #
-# # TODO: Make input variable for the frame rate
+# # TO DO: Make input variable for the frame rate
 # # To decrease the issues, might want to base it off of meniscus shape because
 # # that is using the no learning bg sub
 # # min_btwn_lick has to be variable and depend on the millisecond to frame conversion
