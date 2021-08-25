@@ -7,7 +7,12 @@ from transform import get_four_point_transform, apply_four_point_transform
 
 
 # Gets tube corners and returns video array zoomed in on the tube
-def get_tube(file_path):
+def get_tube(user_input):
+    if 'zoomed' in user_input:
+        print(f'Loading zoomed video array from {user_input["zoomed"]}')
+        return np.load(user_input['zoomed'])
+
+    file_path = user_input['input']
     first_frame = grab_first_frame(file_path)
     cropped_frame, roi = select_roi(first_frame)
     while True:

@@ -22,7 +22,7 @@ def main():
     user_input = get_user_input()
     directory_path = mkdir_from_input(user_input)
 
-    zoomed_video_arr = get_tube(user_input['input'])
+    zoomed_video_arr = get_tube(user_input)
     np.save(os.path.join(directory_path, 'zoomed_video_arr'), zoomed_video_arr)
 
     bg_sub, params_bg_sub = background_subtract(zoomed_video_arr)
@@ -63,7 +63,8 @@ def main():
     show_line(zoomed_video_arr, True, segment_coords, os.path.join(directory_path, 'line_color'))
     show_line(tongue_pixels, False, segment_coords, os.path.join(directory_path, 'line_only_tongue'))
 
-    save_dict(directory_path, 'parameters.json', params_bg_sub | params_clean | params_tongue_end)
+    save_dict(directory_path, 'parameters.json',
+              {**params_bg_sub, **params_clean, **params_tongue_end, **{'user_input': user_input}})
     save_results(user_input, directory_path, tongue_lengths, just_maxes)
 
 
@@ -164,7 +165,7 @@ def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
             'threshold': threshold
         }
     }
-    return bg_subbed_vid_arr
+    return bg_subbed_vid_arr, params
 
 
 # Takes a video array, the desired output file name, and the desired fps of the
@@ -199,13 +200,12 @@ def get_user_input():
     parser.add_argument('-o', '--output', help='path to output folder', default='./data_output/')
     # parser.add_argument('-r', '--save_runtime', default=False,
     #                     help='saves runtime files so the exact session can be reproduced')
+    parser.add_argument('-z', '--zoomed',
+                        help='path to zoomed numpy video array (so you can skip the cropping process)')
     args = vars(parser.parse_args())
-    args['output'].strip(' ./')
-    path = args['input'].strip(' ./')
-    if not os.path.isfile(path):
-        print('Could not find the file: ', args['input'])
-        sys.exit(-1)
-    args['input'] = path
+    args['input'] = args['input'].strip(' ./')
+    if not os.path.isfile(args['input']):
+        raise FileNotFoundError(f"Could not find the file: {args['input']}")
     return args
 
 
