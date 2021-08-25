@@ -10,11 +10,12 @@ from regression import segments_fit
 # Returns the x value of the end of the tongue.
 # Takes a background sub as an input (mog2 is the best for this)
 def find_tongue_end(bg_sub_array):
+    threshold = 10
     tongue_x_max = []
     for image in bg_sub_array:
         nb_components, output, stats, centroids = cv.connectedComponentsWithStats(image, connectivity=8)
         stats = stats[1:, :]  # Removes background
-        stats = stats[stats[:, -1] > 10]  # Removes components smaller than 10 pixels
+        stats = stats[stats[:, -1] > threshold]  # Removes components smaller than threshold pixels  TODO: scale from px
         if np.size(stats) is 0:
             tongue_x_max.append(-1)
             continue
@@ -23,8 +24,12 @@ def find_tongue_end(bg_sub_array):
     np.asarray(tongue_x_max)
     # num_vert = count_pixels_vert(bg_sub_array)
     # tongue_x_max = find_tongue_x_max(num_vert)
-
-    return tongue_x_max
+    params = {
+        'find_tongue_end': {
+            'threshold (px)': threshold
+        }
+    }
+    return tongue_x_max, params
 
 
 # TODO: make save vertical array to text optional

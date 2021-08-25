@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 
+
 # https://stackoverflow.com/questions/46143800/removing-isolated-pixels-using-opencv
 
 # Returns a cleaned background sub. This means that any pixels that
@@ -21,14 +22,30 @@ def main():
 # Returns it cleaned of isolated pixels (random noise) and distant components (usually bubbles)
 def clean_bg_sub(video_array):
     cleaned = []
+    min_size = 100
+    dist_thresh = 20
     for frame in video_array:
         # no_isolated = remove_isolated_pixels(frame)
-        cleaned_frame = remove_distant_components(frame)
+        cleaned_frame = remove_distant_components(frame, min_size, dist_thresh)
         cleaned.append(cleaned_frame)
-    return np.asarray(cleaned)
+    params = {
+        'clean_video params': {
+            'minimum size(px)': min_size,
+            'maximum distance threshold(px)': dist_thresh
+        }
+    }
+    return np.asarray(cleaned), params
 
 
-def remove_distant_components(image):
+    # TODO: Change from being hardcoded to scale from cm per px
+    # min_size = minimum size of particles that go un-vetted.
+    # To the program, they are unquestionably either the tongue or
+    # meniscus. They are kept and are what the dist_from_arr are based on.
+    # dist_thresh is the maximum distance from the tongue or meniscus (as determined
+    # by the min_size value) that a component is kept. Anything equal to or further
+    # than the distance is deleted. The maximum distance value is from the part of each component
+    # nearest one another
+def remove_distant_components(image, min_size, dist_thresh):
     # find all your connected components (white blobs in your image)
     nb_components, output, stats, centroids = cv.connectedComponentsWithStats(image, connectivity=8)
     # connectedComponentswithStats yields every seperated component with information on each of them, such as size
@@ -39,10 +56,6 @@ def remove_distant_components(image):
     #     return image
     centroids = centroids[1:].astype(int)
     nb_components = nb_components - 1
-
-    # minimum size of particles that go un-vetted, and are unquestionably either the tongue or meniscus.
-    # They are kept and are what the dist_from_arr are based on.
-    min_size = 100
 
     # your answer image
     cleaned = np.zeros(output.shape, dtype=np.uint8)
@@ -62,7 +75,7 @@ def remove_distant_components(image):
 
     for i in range(2, nb_components):  #
         min_distance = np.amin(dist_from_arr[output == i + 1])
-        if min_distance < 20:  # TODO: Change distance from being hardcoded to scale from cm per px
+        if min_distance < dist_thresh:
             cleaned[output == i + 1] = 255
 
     return cleaned

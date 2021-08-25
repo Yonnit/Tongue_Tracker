@@ -11,7 +11,7 @@ from tongue_functions import find_tongue_end
 from select_meniscus import get_meniscus
 from data_analysis import analyse_data
 from regression import piecewise_linear
-from output_functions import save_results, mkdir_from_input
+from output_functions import save_results, mkdir_from_input, save_dict
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     zoomed_video_arr = get_tube(user_input['input'])
     np.save(os.path.join(directory_path, 'zoomed_video_arr'), zoomed_video_arr)
 
-    bg_sub = background_subtract(zoomed_video_arr)
+    bg_sub, params_bg_sub = background_subtract(zoomed_video_arr)
     np.save(os.path.join(directory_path, 'bg_sub'), bg_sub)
 
     start = 2338 - 1  # start frame from
@@ -33,13 +33,13 @@ def main():
     zoomed_video_arr = zoomed_video_arr[start:end, :, :]
     bg_sub = bg_sub[start:end, :, :]
 
-    cleaned_bg_sub = clean_bg_sub(bg_sub)
+    cleaned_bg_sub, params_clean = clean_bg_sub(bg_sub)
     np.save(os.path.join(directory_path, 'cleaned_bg_sub'), cleaned_bg_sub)
 
     from multi_video_player import video_player
     video_player(0, bg_sub, cleaned_bg_sub, zoomed_video_arr)
 
-    tongue_maxes = find_tongue_end(cleaned_bg_sub)
+    tongue_maxes, params_tongue_end = find_tongue_end(cleaned_bg_sub)
     # 20 licks per second is right above the max hummingbird feeding speed, therefore FPS/20 (setting upper bounds)
     tongue_max_frames = find_peaks(tongue_maxes, distance=user_input['fps'] / 20)[0]
     np.save(os.path.join(directory_path, 'tongue_max_frames'), tongue_max_frames)
@@ -63,6 +63,7 @@ def main():
     show_line(zoomed_video_arr, True, segment_coords, os.path.join(directory_path, 'line_color'))
     show_line(tongue_pixels, False, segment_coords, os.path.join(directory_path, 'line_only_tongue'))
 
+    save_dict(directory_path, 'parameters.json', params_bg_sub | params_clean | params_tongue_end)
     save_results(user_input, directory_path, tongue_lengths, just_maxes)
 
 
@@ -135,11 +136,14 @@ def show_line(video_arr, is_color, segment_coords, output_file_path=None):
 def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
     # total_frame_count = len(input_video_arr)
     # print(f'Total number of frames: {total_frame_count}')
+    threshold = 0
     print('Starting Background Subtract')
     if algo == 'KNN':
         back_sub = cv.createBackgroundSubtractorKNN(dist2Threshold=100, detectShadows=False)
+        threshold = back_sub.getDist2Threshold()
     elif algo == 'MOG2':
         back_sub = cv.createBackgroundSubtractorMOG2(detectShadows=False, varThreshold=20)  # Raise threshold & history?
+        threshold = back_sub.getVarThreshold()
     else:
         raise ValueError("Unknown background subtract method")
     bg_subbed_vid_arr = []
@@ -153,6 +157,13 @@ def background_subtract(input_video_arr, learning_rate=-1, algo='KNN'):
 
     bg_subbed_vid_arr = np.asarray(bg_subbed_vid_arr)
     print('Done with Background Subtract')
+    params = {
+        'background_subtract': {
+            'algorithm': algo,
+            'learning rate': learning_rate,
+            'threshold': threshold
+        }
+    }
     return bg_subbed_vid_arr
 
 

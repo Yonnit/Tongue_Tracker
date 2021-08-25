@@ -36,12 +36,23 @@ def make_directory(path, input_file_name):
     return directory_path
 
 
+def save_dict(dir_path, name, dictionary):
+    path = os.path.join(dir_path, name)
+    import json
+    json = json.dumps(dictionary)
+    f = open(path, 'w')
+    f.write(json)
+    f.close()
+    print("Parameters have been successfully saved")
+
+
 def save_txt(data, directory_path, input_file_name, name):
     name_and_path = f'./{directory_path}/{input_file_name}__{name}.csv'
 
     np.savetxt(name_and_path, data, delimiter=",")
 
 
+# just use np.savez instead
 def save_process(directory_path, **kwargs):
     for key, value in kwargs.items():
         path = os.path.join(directory_path, key)
