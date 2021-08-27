@@ -14,9 +14,9 @@ def main():
 
 def video_player(starting_frame, *args):
     try:
-        total_frames, y_dim, x_dim, px_value = np.asarray(np.shape(args[1]))
+        total_frames, y_dim, x_dim, px_value = np.asarray(np.shape(args[0]))
     except ValueError:
-        total_frames, y_dim, x_dim = np.asarray(np.shape(args[1]))  # For single channel images (black and white)
+        total_frames, y_dim, x_dim = np.asarray(np.shape(args[0]))  # For single channel images (black and white)
 
     print(f'Starting on frame {starting_frame} of {total_frames} total frames')
     magnification = 1
