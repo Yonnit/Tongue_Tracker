@@ -8,7 +8,7 @@ from transform import get_four_point_transform, apply_four_point_transform
 
 # Gets tube corners and returns video array zoomed in on the tube
 def get_tube(user_input):
-    if 'zoomed' in user_input:
+    if user_input['zoomed'] is not None:
         print(f'Loading zoomed video array from {user_input["zoomed"]}')
         return np.load(user_input['zoomed'])
 
@@ -56,7 +56,7 @@ def click_and_crop(event, x, y, flags, param):
     if (event == cv.EVENT_LBUTTONDOWN) & (len(CORNER_COORDS) < 4):
         click_coords = (x/MAGNIFICATION, y/MAGNIFICATION)
         CORNER_COORDS.append(click_coords)
-        print(f'Clicked corner {len(CORNER_COORDS)}/4')
+        print(f'Clicked point {len(CORNER_COORDS)}/3')
         print(click_coords)
 
 
@@ -68,7 +68,7 @@ def select_corners(img):
     CORNER_COORDS = []
 
     print("First, select the two corners on the same side of the tube."
-          "Then select any point on the opposite side of the tube."
+          "Then select any point on the opposite edge of the tube."
           ""
           "Press '+' to zoom in. Press '-' to zoom out"
           "Press 'ESC' to Quit")
