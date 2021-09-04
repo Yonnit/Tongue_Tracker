@@ -21,6 +21,7 @@ def main():
 # Takes a black and white video array.
 # Returns it cleaned of isolated pixels (random noise) and distant components (usually bubbles)
 def clean_bg_sub(video_array):
+    print("Starting to Clean the Video")
     cleaned = []
     min_size = 100
     dist_thresh = 20
@@ -34,6 +35,7 @@ def clean_bg_sub(video_array):
             'maximum distance threshold(px)': dist_thresh
         }
     }
+    print("Done Cleaning Video")
     return np.asarray(cleaned), params
 
 
