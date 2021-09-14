@@ -12,7 +12,7 @@ args = vars(ap.parse_args())
 # Arguments
 dir_path = Path(args['folder'])
 ext = args['extension']
-output = f"images_to_video/{dir_path.parts[-2]}.avi"
+output = f"images_to_video/{dir_path.parts[-1]}.avi"
 # dir_path = "Export_20171212_025451_PM"
 # ext = "bmp"
 # output = f"{dir_path}.avi"
