@@ -4,7 +4,10 @@
 # User specific inputs and outputs
 # Ignores the contents of the folder, but not the folder itself
 video_input/*
+!video_input/.gitkeep
 data_output/*
+!data_output/.gitkeep
+
 
 # Ignores everything in the folder but the script
 images_to_video/*
