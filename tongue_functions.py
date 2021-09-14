@@ -16,7 +16,7 @@ def find_tongue_end(bg_sub_array):
         nb_components, output, stats, centroids = cv.connectedComponentsWithStats(image, connectivity=8)
         stats = stats[1:, :]  # Removes background
         stats = stats[stats[:, -1] > threshold]  # Removes components smaller than threshold pixels  TODO: scale from px
-        if np.size(stats) is 0:
+        if np.size(stats) == 0:
             tongue_x_max.append(-1)
             continue
         rightmost = np.amax(stats[:, 0] + stats[:, 2] - 1)
