@@ -6,13 +6,12 @@ import os
 ap = argparse.ArgumentParser()
 ap.add_argument("-f", "--file", required=True, help="name of file containing images to convert")
 ap.add_argument("-ext", "--extension", required=False, default='bmp', help="extension name. default is 'bmp'.")
-ap.add_argument("-o", "--output", required=False, default='vid_from_imgs.mp4', help="output video file")
 args = vars(ap.parse_args())
 
 # Arguments
 dir_path = '.' + args['file']
 ext = args['extension']
-output = args['output']
+output = f"{args['file']}.avi"
 # dir_path = "Export_20171212_025451_PM"
 # ext = "bmp"
 # output = f"{dir_path}.avi"
