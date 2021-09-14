@@ -12,7 +12,7 @@ args = vars(ap.parse_args())
 # Arguments
 dir_path = Path(args['folder'])
 ext = args['extension']
-output = f"{dir_path.parts[-2]}.avi"
+output = f"images_to_video/{dir_path.parts[-2]}.avi"
 # dir_path = "Export_20171212_025451_PM"
 # ext = "bmp"
 # output = f"{dir_path}.avi"
@@ -31,7 +31,7 @@ cv2.imshow('video', frame)
 height, width, channels = frame.shape
 
 # Define the codec and create VideoWriter object
-fourcc = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')  # can also use (*'mp4v') if we want mp4 (may make smaller files)
+fourcc = cv2.VideoWriter_fourcc('F', 'F', 'V', '1')  # can also use (*'mp4v') if we want mp4 (may make smaller files)
 out = cv2.VideoWriter(output, fourcc, 20.0, (width, height))
 
 for image in images:
