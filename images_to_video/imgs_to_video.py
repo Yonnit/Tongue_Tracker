@@ -1,17 +1,18 @@
 import cv2
 import argparse
 import os
+from pathlib import Path
 
 # Construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-f", "--file", required=True, help="name of file containing images to convert")
+ap.add_argument("-f", "--folder", required=True, help="path to folder containing images to convert to video")
 ap.add_argument("-ext", "--extension", required=False, default='bmp', help="extension name. default is 'bmp'.")
 args = vars(ap.parse_args())
 
 # Arguments
-dir_path = '.' + args['file']
+dir_path = Path(args['folder'])
 ext = args['extension']
-output = f"{args['file']}.avi"
+output = f"{dir_path.parts[-2]}.avi"
 # dir_path = "Export_20171212_025451_PM"
 # ext = "bmp"
 # output = f"{dir_path}.avi"
