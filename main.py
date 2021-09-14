@@ -15,9 +15,9 @@ from output_functions import save_results, mkdir_from_input, save_dict
 
 
 def main():
-    # zoomed_video_arr = np.load('./data_output/B1-S60_FULL__20210816_202626/zoomed_video_arr.npy')
-    # meniscus_coords = np.load('./data_output/B1-S60_FULL__20210816_202626/meniscus_coords.npy')
-    # segment_coords = np.load('./data_output/B1-S60_FULL__20210816_202626/segment_coords.npy')
+    # zoomed_video_arr = np.load('./data_output/B1-90c__20210831_143231/zoomed_video_arr.npy')
+    # meniscus_arr = np.load('./data_output/B1-90c__20210831_143231/meniscus_arr.npy')
+    # segment_coords = np.load('./data_output/B1-90c__20210831_143231/segment_coords.npy')
 
     user_input = get_user_input()
     directory_path = mkdir_from_input(user_input)
@@ -28,10 +28,6 @@ def main():
     bg_sub, params_bg_sub = background_subtract(zoomed_video_arr)
     np.save(os.path.join(directory_path, 'bg_sub'), bg_sub)
 
-    start = 2338 - 1  # start frame from
-    end = 2681
-    zoomed_video_arr = zoomed_video_arr[start:end, :, :]
-    bg_sub = bg_sub[start:end, :, :]
 
     cleaned_bg_sub, params_clean = clean_bg_sub(bg_sub)
     np.save(os.path.join(directory_path, 'cleaned_bg_sub'), cleaned_bg_sub)
@@ -40,8 +36,12 @@ def main():
     video_player(0, bg_sub, cleaned_bg_sub, zoomed_video_arr)
 
     tongue_maxes, params_tongue_end = find_tongue_end(cleaned_bg_sub)
+
+    save_dict(directory_path, 'parameters.json',
+              {**params_bg_sub, **params_clean, **params_tongue_end, **{'user_input': user_input}})
+
     # 20 licks per second is right above the max hummingbird feeding speed, therefore FPS/20 (setting upper bounds)
-    tongue_max_frames = find_peaks(tongue_maxes, distance=user_input['fps'] / 20)[0]
+    tongue_max_frames = find_peaks(tongue_maxes, distance=user_input['fps'] / user_input['maxlps'])[0]
     np.save(os.path.join(directory_path, 'tongue_max_frames'), tongue_max_frames)
     print(f"distance = {user_input['fps'] / 20}")
     print('Number of maximums=', len(tongue_max_frames))
@@ -63,8 +63,6 @@ def main():
     show_line(zoomed_video_arr, True, segment_coords, os.path.join(directory_path, 'line_color'))
     show_line(tongue_pixels, False, segment_coords, os.path.join(directory_path, 'line_only_tongue'))
 
-    save_dict(directory_path, 'parameters.json',
-              {**params_bg_sub, **params_clean, **params_tongue_end, **{'user_input': user_input}})
     save_results(user_input, directory_path, tongue_lengths, just_maxes)
 
 
@@ -202,6 +200,9 @@ def get_user_input():
     #                     help='saves runtime files so the exact session can be reproduced')
     parser.add_argument('-z', '--zoomed',
                         help='path to zoomed numpy video array (so you can skip the cropping process)')
+    parser.add_argument('-mlps', '--maxlps', type=int, default=20,
+                        help='set the upper bounds of maximum number of licks per second. Defaults to 20 (because'
+                             '20 licks per second is right above the maximum possible hummingbird feeding speed)')
     args = vars(parser.parse_args())
     args['input'] = args['input'].strip(' ./')
     if not os.path.isfile(args['input']):
