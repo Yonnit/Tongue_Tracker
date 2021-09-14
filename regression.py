@@ -75,13 +75,18 @@ def piecewise_linear(video_arr):
     segment_coords = []
     for frame in video_arr:
         if np.count_nonzero(frame) < 4:  # If there are no nonzero values
-            segment_coords.append(np.full((2, 3), -1))
+            segment_coords.append(np.full((3, 2), -1))
         else:
             y, x = frame.nonzero()
             points = list(segments_fit(x, y))  # TODO: add these to params
             if np.isnan(points[1][1]):  # Removes the nan and makes the values equal to the furthest left point
                 points[1][1] = points[1][0]
                 points[0][1] = points[0][0]
+
+            points = np.asarray(points)
+            # print('shape = ', np.shape(points))
+            points = np.rot90(points, 1, (1, 0))
+            points = np.fliplr(points)
             segment_coords.append(points)
     segment_coords = np.asarray(segment_coords)
     return segment_coords

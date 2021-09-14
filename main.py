@@ -15,19 +15,23 @@ from output_functions import save_results, mkdir_from_input, save_dict
 
 
 def main():
-    # zoomed_video_arr = np.load('./data_output/B1-90c__20210831_143231/zoomed_video_arr.npy')
-    # meniscus_arr = np.load('./data_output/B1-90c__20210831_143231/meniscus_arr.npy')
+    zoomed_video_arr = np.load('./data_output/B1-90c__20210831_143231/zoomed_video_arr.npy')
+    meniscus_arr = np.load('./data_output/B1-90c__20210831_143231/meniscus_arr.npy')
     # segment_coords = np.load('./data_output/B1-90c__20210831_143231/segment_coords.npy')
 
     user_input = get_user_input()
     directory_path = mkdir_from_input(user_input)
 
-    zoomed_video_arr = get_tube(user_input)
+    # zoomed_video_arr = get_tube(user_input)
     np.save(os.path.join(directory_path, 'zoomed_video_arr'), zoomed_video_arr)
 
     bg_sub, params_bg_sub = background_subtract(zoomed_video_arr)
     np.save(os.path.join(directory_path, 'bg_sub'), bg_sub)
 
+    # start = 2338 - 1  # start frame from
+    # end = 2681
+    # zoomed_video_arr = zoomed_video_arr[start:end, :, :]
+    # bg_sub = bg_sub[start:end, :, :]
 
     cleaned_bg_sub, params_clean = clean_bg_sub(bg_sub)
     np.save(os.path.join(directory_path, 'cleaned_bg_sub'), cleaned_bg_sub)
@@ -48,9 +52,9 @@ def main():
     selected_frames = cleaned_bg_sub[tongue_max_frames, :, :]
     selected_color = zoomed_video_arr[tongue_max_frames, :, :]
 
-    meniscus_coords = get_meniscus(selected_frames, selected_color)
+    # meniscus_coords = get_meniscus(selected_frames, selected_color)
 
-    meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
+    # meniscus_arr = update_meniscus_position(meniscus_coords, tongue_max_frames, np.shape(cleaned_bg_sub)[0])
     np.save(os.path.join(directory_path, 'meniscus_arr'), meniscus_arr)
 
     tongue_pixels = extract_tongue_pixels(cleaned_bg_sub, meniscus_arr, tongue_maxes)
