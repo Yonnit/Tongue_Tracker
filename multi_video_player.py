@@ -65,6 +65,7 @@ def get_user_input():
     if not os.path.isdir(args['folder']):
         raise FileNotFoundError(f"Could not find the folder: {args['folder']}")
     if args['list_input'] is None:
+        print('Opening default output videos from the tongue_tracking program')
         path = args['folder']
         args['list_input'] = f'{path}/line_bw.npy', f'{path}/line_color.npy', f'{path}/line_only_tongue.npy', \
                              f'{path}/zoomed_video_arr.npy'
