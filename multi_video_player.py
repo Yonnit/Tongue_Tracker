@@ -62,7 +62,7 @@ def get_user_input():
     parser.add_argument('-li', '--list_input', nargs='+', help='list of file names for the video player to open')
     args = vars(parser.parse_args())
     args['folder'] = args['folder'].strip(' ./')
-    if not os.path.isfile(args['folder']):
+    if not os.path.isdir(args['folder']):
         raise FileNotFoundError(f"Could not find the folder: {args['folder']}")
     if args['li'] is None:
         path = args['folder']
