@@ -64,12 +64,12 @@ def get_user_input():
     args['folder'] = args['folder'].strip(' ./')
     if not os.path.isdir(args['folder']):
         raise FileNotFoundError(f"Could not find the folder: {args['folder']}")
-    if args['li'] is None:
+    if args['list_input'] is None:
         path = args['folder']
-        args['li'] = f'{path}/line_bw.npy', f'{path}/line_color.npy', f'{path}/line_only_tongue.npy', \
-                     f'{path}/zoomed_video_arr.npy'
+        args['list_input'] = f'{path}/line_bw.npy', f'{path}/line_color.npy', f'{path}/line_only_tongue.npy', \
+                             f'{path}/zoomed_video_arr.npy'
     video_list = []
-    for arg in args['li']:
+    for arg in args['list_input']:
         video_list.append(np.load(arg))
     return video_list
 
