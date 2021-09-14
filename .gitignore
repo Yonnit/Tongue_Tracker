@@ -2,8 +2,9 @@
 .idea/
 
 # User specific inputs and outputs
-video_input/
-data_output/
+# Ignores the contents of the folder, but not the folder itself
+video_input/*
+data_output/*
 
 # Ignores everything in the folder but the script
 images_to_video/*
