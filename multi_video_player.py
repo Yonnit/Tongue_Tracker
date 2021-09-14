@@ -3,15 +3,6 @@ import numpy as np
 import sys
 
 
-def main():
-    path = './data_output/B2-S60__20210818_174853'
-    a = np.load(f'{path}/bw_line.npy')
-    a2 = np.load(f'{path}/color_line.npy')
-    a3 = np.load(f'{path}/only_tongue_line.npy')
-    a4 = np.load(f'{path}/zoomed_video_arr.npy')
-    video_player(0, a, a2, a3, a4)
-
-
 def video_player(starting_frame, *args):
     try:
         total_frames, y_dim, x_dim, px_value = np.asarray(np.shape(args[0]))
@@ -52,6 +43,35 @@ def video_player(starting_frame, *args):
         elif (key == ord("-")) and magnification > 1:
             magnification -= 1
     cv.destroyAllWindows()
+
+
+def main():
+    videos = get_user_input()
+    video_player(0, *videos)
+
+
+# Configures parameters the user inputs when opening the program
+# Returns a dictionary of parameters.
+def get_user_input():
+    import argparse
+    import os
+    parser = argparse.ArgumentParser(description='A video player that can play one or more videos simultaneously.')
+    parser.add_argument('-f', '--folder', required=True, help='path to folder that files are in. If list_input'
+                                                              'is left empty, will automatically try to open'
+                                                              'default output video files from tongue_tracking')
+    parser.add_argument('-li', '--list_input', nargs='+', help='list of file names for the video player to open')
+    args = vars(parser.parse_args())
+    args['folder'] = args['folder'].strip(' ./')
+    if not os.path.isfile(args['folder']):
+        raise FileNotFoundError(f"Could not find the folder: {args['folder']}")
+    if args['li'] is None:
+        path = args['folder']
+        args['li'] = f'{path}/line_bw.npy', f'{path}/line_color.npy', f'{path}/line_only_tongue.npy', \
+                     f'{path}/zoomed_video_arr.npy'
+    video_list = []
+    for arg in args['li']:
+        video_list.append(np.load(arg))
+    return video_list
 
 
 if __name__ == '__main__':
