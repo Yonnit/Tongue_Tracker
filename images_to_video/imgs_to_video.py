@@ -18,11 +18,12 @@ output = f"{dir_path.parts[-1]}.avi"
 # output = f"{dir_path}.avi"
 
 images = []
-print(dir_path)
-print(os.listdir(dir_path))
+print(f"Directory path: {dir_path}")
+# print(os.listdir(dir_path))
 for f in os.listdir(dir_path):
     if f.endswith(ext):
         images.append(f)
+print(f"This folder contains {len(images)} images")
 
 # Determine the width and height from the first image
 image_path = os.path.join(dir_path, images[0])
